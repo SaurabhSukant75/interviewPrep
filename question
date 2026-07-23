@@ -1,542 +1,691 @@
-# Interview Notes
+\# Interview Notes
 
-## Interview Format
+\## Interview Format
 
 This document is written from an interview perspective. Questions are asked by the interviewer, and answers are given as though I am the candidate.
 
----
+\---
 
-## 1. Core Java
+\## 1. Core Java
 
-### Q: Explain the Java Memory Model (JMM).
+\### Q: Explain the Java Memory Model (JMM).
+
 A: The Java Memory Model defines how Java threads interact through shared memory and what behaviors are legal in a multithreaded environment. After 7 years working on highly concurrent systems, I rely on the JMM as the foundation for visibility and ordering guarantees. It distinguishes between main memory and thread-local caches, defines happens-before relationships, and explains how actions like reads, writes, lock acquire/release, volatile writes/reads, and final field initialization become visible across threads.
 
-A strong understanding of JMM helps avoid subtle bugs such as stale reads, out-of-order execution, and broken double-checked locking. In production, I treat `volatile` or synchronization as the contract boundary for safe publication of shared state.
+A strong understanding of JMM helps avoid subtle bugs such as stale reads, out-of-order execution, and broken double-checked locking. In production, I treat \`volatile\` or synchronization as the contract boundary for safe publication of shared state.
 
-### Q: How does `volatile` work?
-A: `volatile` provides visibility and ordering guarantees without full mutual exclusion. A write to a volatile field establishes a happens-before relationship with subsequent reads of that field, so updates become visible to other threads immediately. It also prevents certain compiler and CPU reorderings around the volatile access.
+\### Q: How does \`volatile\` work?
 
-I use `volatile` for state flags, completion markers, and simple one-writer/many-reader scenarios. I avoid it for compound operations because it does not make actions like `count++` atomic; in those cases I use `AtomicInteger`, `synchronized`, or `ReentrantLock`.
+A: \`volatile\` provides visibility and ordering guarantees without full mutual exclusion. A write to a volatile field establishes a happens-before relationship with subsequent reads of that field, so updates become visible to other threads immediately. It also prevents certain compiler and CPU reorderings around the volatile access.
 
-### Q: `synchronized` vs `ReentrantLock`.
-A: `synchronized` is simple, reliable, and the right choice for most critical sections. It is easier to reason about and automatically releases the lock when the block exits.
+I use \`volatile\` for state flags, completion markers, and simple one-writer/many-reader scenarios. I avoid it for compound operations because it does not make actions like \`count++\` atomic; in those cases I use \`AtomicInteger\`, \`synchronized\`, or \`ReentrantLock\`.
 
-`ReentrantLock` is my choice when I need advanced behavior: timed lock acquisition with `tryLock`, interruptible lock acquisition, fairness policies, or multiple `Condition` objects. In a multithreaded batch processing service I used `ReentrantLock` to avoid deadlocks when threads needed to acquire locks in non-deterministic order and to implement a custom waiting queue.
+\### Q: \`synchronized\` vs \`ReentrantLock\`.
 
-### Q: `HashMap` internal working in Java 8+.
-A: Java 8+ `HashMap` uses an array of bins. Each bin starts as a linked list, and once the chain exceeds a threshold it converts to a balanced red-black tree to keep lookups near O(log n). On insert, the hash is spread to reduce collisions, the bucket index is computed, and existing keys are compared with `equals()`.
+A: \`synchronized\` is simple, reliable, and the right choice for most critical sections. It is easier to reason about and automatically releases the lock when the block exits.
 
-A `HashMap` resize copies entries to a larger array and redistributes them efficiently by reusing the old buckets’ low/high bits. In a past performance audit, I found a poorly chosen `hashCode()` caused excessive treeification and fixed it to restore consistent lookup times.
+\`ReentrantLock\` is my choice when I need advanced behavior: timed lock acquisition with \`tryLock\`, interruptible lock acquisition, fairness policies, or multiple \`Condition\` objects. In a multithreaded batch processing service I used \`ReentrantLock\` to avoid deadlocks when threads needed to acquire locks in non-deterministic order and to implement a custom waiting queue.
 
-### Q: `ConcurrentHashMap` internals.
-A: `ConcurrentHashMap` is designed for high concurrency without global locking. It uses a combination of CAS-based updates, volatile reads, and limited synchronized blocks. In Java 8+, the structure is similar to `HashMap`, but bins are initialized lazily and multi-threaded updates are coordinated via CAS on the table array, with per-bin locks for treeification or complex modifications.
+\### Q: \`HashMap\` internal working in Java 8+.
 
-Read paths are mostly lock-free and can tolerate concurrent modifications. The size calculation uses optimistic reads and may require retries. In production, I use `ConcurrentHashMap` for caches and dispatch maps where low-latency access under contention is essential.
+A: Java 8+ \`HashMap\` uses an array of bins. Each bin starts as a linked list, and once the chain exceeds a threshold it converts to a balanced red-black tree to keep lookups near O(log n). On insert, the hash is spread to reduce collisions, the bucket index is computed, and existing keys are compared with \`equals()\`.
 
-### Q: `equals()` vs `hashCode()`.
-A: `equals()` defines logical equality, and `hashCode()` defines the bucket placement in hash-based collections. The contract is strict: if two objects are equal, they must return the same hash code; if their hash codes differ, they cannot be equal.
+A \`HashMap\` resize copies entries to a larger array and redistributes them efficiently by reusing the old buckets’ low/high bits. In a past performance audit, I found a poorly chosen \`hashCode()\` caused excessive treeification and fixed it to restore consistent lookup times.
 
-With seven years of experience, I also emphasize that the hash code should be stable for the lifetime of the object while it is used as a map key. Mutable fields in `hashCode()` often cause hard-to-debug collection corruption.
+\### Q: \`ConcurrentHashMap\` internals.
 
-### Q: Why are Strings immutable?
-A: Strings are immutable for a few practical reasons: security, thread safety, caching, and consistency. As a shared object used for keys, class names, and headers, immutability means I can safely share `String` instances across threads without locking.
+A: \`ConcurrentHashMap\` is designed for high concurrency without global locking. It uses a combination of CAS-based updates, volatile reads, and limited synchronized blocks. In Java 8+, the structure is similar to \`HashMap\`, but bins are initialized lazily and multi-threaded updates are coordinated via CAS on the table array, with per-bin locks for treeification or complex modifications.
+
+Read paths are mostly lock-free and can tolerate concurrent modifications. The size calculation uses optimistic reads and may require retries. In production, I use \`ConcurrentHashMap\` for caches and dispatch maps where low-latency access under contention is essential.
+
+\### Q: \`equals()\` vs \`hashCode()\`.
+
+A: \`equals()\` defines logical equality, and \`hashCode()\` defines the bucket placement in hash-based collections. The contract is strict: if two objects are equal, they must return the same hash code; if their hash codes differ, they cannot be equal.
+
+With seven years of experience, I also emphasize that the hash code should be stable for the lifetime of the object while it is used as a map key. Mutable fields in \`hashCode()\` often cause hard-to-debug collection corruption.
+
+\### Q: Why are Strings immutable?
+
+A: Strings are immutable for a few practical reasons: security, thread safety, caching, and consistency. As a shared object used for keys, class names, and headers, immutability means I can safely share \`String\` instances across threads without locking.
 
 It also enables JVM optimizations such as string interning and reuse of hash codes. In the JVM, immutable strings are the basis for safe publish patterns and for using string constants as map keys in shared caches.
 
-### Q: Difference between `ArrayList` and `LinkedList`.
-A: `ArrayList` uses a contiguous array, making random access and iteration very fast. It is usually my default list implementation unless I need frequent insertions/removals in the middle of the list.
+\### Q: Difference between \`ArrayList\` and \`LinkedList\`.
 
-`LinkedList` is a doubly-linked structure with cheaper insert/remove in the middle but much higher memory overhead and slower traversal. In practice, I avoid `LinkedList` unless there is a strong requirement for queue-like operations or constant-time insertion at known positions.
+A: \`ArrayList\` uses a contiguous array, making random access and iteration very fast. It is usually my default list implementation unless I need frequent insertions/removals in the middle of the list.
 
-### Q: `Comparable` vs `Comparator`.
-A: `Comparable` defines a natural ordering on the object itself through `compareTo()`. I use it when there is a default business ordering, such as by `id` or `timestamp`.
+\`LinkedList\` is a doubly-linked structure with cheaper insert/remove in the middle but much higher memory overhead and slower traversal. In practice, I avoid \`LinkedList\` unless there is a strong requirement for queue-like operations or constant-time insertion at known positions.
 
-`Comparator` is external and more flexible. In senior work, I often rely on Java 8 `Comparator.comparing()`, reversing, and chaining comparators for dynamic sort criteria and for sorting objects by different attributes without changing the class.
+\### Q: \`Comparable\` vs \`Comparator\`.
 
-### Q: Explain Garbage Collection and G1GC.
+A: \`Comparable\` defines a natural ordering on the object itself through \`compareTo()\`. I use it when there is a default business ordering, such as by \`id\` or \`timestamp\`.
+
+\`Comparator\` is external and more flexible. In senior work, I often rely on Java 8 \`Comparator.comparing()\`, reversing, and chaining comparators for dynamic sort criteria and for sorting objects by different attributes without changing the class.
+
+\### Q: Explain Garbage Collection and G1GC.
+
 A: Garbage collection reclaims memory by identifying objects that are no longer reachable. In JVM production services, I tune GC as part of performance engineering.
 
 G1GC is a server-style collector that partitions the heap into regions and performs concurrent marking with incremental evacuation. It targets predictable pauses by collecting the youngest regions first and then mixing old regions as needed. I have used G1 on services with large heaps to reduce full GC pauses and to meet strict latency SLAs.
 
-### Q: How does `CompletableFuture` work?
-A: `CompletableFuture` is an asynchronous computation primitive that supports chaining, composition, and non-blocking event-driven programming. You can start tasks with `supplyAsync()`, chain dependent tasks with `thenApply()`, combine multiple futures with `allOf()`/`anyOf()`, and handle exceptions with `handle`, `exceptionally`, or `whenComplete`.
+\### Q: How does \`CompletableFuture\` work?
 
-In a microservice I used `CompletableFuture` to parallelize remote service calls, collect results, and fall back gracefully when one of the calls timed out.
+A: \`CompletableFuture\` is an asynchronous computation primitive that supports chaining, composition, and non-blocking event-driven programming. You can start tasks with \`supplyAsync()\`, chain dependent tasks with \`thenApply()\`, combine multiple futures with \`allOf()\`/\`anyOf()\`, and handle exceptions with \`handle\`, \`exceptionally\`, or \`whenComplete\`.
 
-### Q: Producer-Consumer implementation.
-A: I prefer `BlockingQueue` implementations such as `ArrayBlockingQueue` or `LinkedBlockingQueue` for clean producer-consumer coordination. Producers call `put()` and consumers call `take()`, and the queue itself handles blocking, backpressure, and thread safety.
+In a microservice I used \`CompletableFuture\` to parallelize remote service calls, collect results, and fall back gracefully when one of the calls timed out.
+
+\### Q: Producer-Consumer implementation.
+
+A: I prefer \`BlockingQueue\` implementations such as \`ArrayBlockingQueue\` or \`LinkedBlockingQueue\` for clean producer-consumer coordination. Producers call \`put()\` and consumers call \`take()\`, and the queue itself handles blocking, backpressure, and thread safety.
 
 In a real system, I also add a poison pill or shutdown signal, and I manage thread pool sizes carefully to avoid resource starvation.
 
-### Q: Functional interfaces and Stream API.
-A: Functional interfaces, like `Function`, `Predicate`, and `Consumer`, are the basis for lambdas and method references. Streams let me transform and reduce collections declaratively with pipeline operations such as `filter`, `map`, `flatMap`, `collect`, and `reduce`.
+\### Q: Functional interfaces and Stream API.
+
+A: Functional interfaces, like \`Function\`, \`Predicate\`, and \`Consumer\`, are the basis for lambdas and method references. Streams let me transform and reduce collections declaratively with pipeline operations such as \`filter\`, \`map\`, \`flatMap\`, \`collect\`, and \`reduce\`.
 
 With experience, I use streams for expressive data processing while staying mindful of not overusing them in performance-sensitive hot paths.
 
-### Q: Find duplicate elements using Streams.
+\### Q: Find duplicate elements using Streams.
+
 A: I typically use grouping and counting or track seen elements in a set:
 
-```java
-List<String> duplicates = list.stream()
-    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-    .entrySet().stream()
-    .filter(e -> e.getValue() > 1)
-    .map(Map.Entry::getKey)
-    .collect(Collectors.toList());
-```
+\`\`\`java
+
+List duplicates = list.stream()
+
+.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+
+.entrySet().stream()
+
+.filter(e -> e.getValue() > 1)
+
+.map(Map.Entry::getKey)
+
+.collect(Collectors.toList());
+
+\`\`\`
 
 For large data sets, I prefer a set-based approach to reduce memory overhead.
 
-### Q: Find second highest salary using Streams.
+\### Q: Find second highest salary using Streams.
+
 A: One robust approach is:
 
-```java
+\`\`\`java
+
 int secondHighest = employees.stream()
-    .map(Employee::getSalary)
-    .distinct()
-    .sorted(Comparator.reverseOrder())
-    .skip(1)
-    .findFirst()
-    .orElseThrow(() -> new NoSuchElementException("No second highest salary"));
-```
+
+.map(Employee::getSalary)
+
+.distinct()
+
+.sorted(Comparator.reverseOrder())
+
+.skip(1)
+
+.findFirst()
+
+.orElseThrow(() -> new NoSuchElementException("No second highest salary"));
+
+\`\`\`
 
 When working with very large data sets, I push these calculations into the database instead of bringing all rows into Java.
 
----
+\---
 
-## 2. Spring Boot
+\## 2. Spring Boot
 
-### Q: How does Spring Boot start internally?
-A: Spring Boot startup begins with `SpringApplication.run()`. It loads configuration through `SpringFactoriesLoader`, builds the `Environment`, creates the `ApplicationContext`, performs component scanning, loads auto-configuration classes annotated with `@Configuration` and `@EnableAutoConfiguration`, and registers beans.
+\### Q: How does Spring Boot start internally?
 
-During startup it also applies `ApplicationContextInitializer`s, refreshes the context, and triggers `ApplicationRunner` and `CommandLineRunner` beans. For web applications, it bootstraps an embedded servlet container like Tomcat or Jetty.
+A: Spring Boot startup begins with \`SpringApplication.run()\`. It loads configuration through \`SpringFactoriesLoader\`, builds the \`Environment\`, creates the \`ApplicationContext\`, performs component scanning, loads auto-configuration classes annotated with \`@Configuration\` and \`@EnableAutoConfiguration\`, and registers beans.
 
-### Q: Explain Spring Bean lifecycle.
-A: The lifecycle starts with bean instantiation, dependency injection, `BeanNameAware`/`BeanFactoryAware` callbacks, `BeanPostProcessor` pre-processing, `@PostConstruct` or `afterPropertiesSet()`, and finally `BeanPostProcessor` post-processing. For singleton beans, the lifecycle ends with destruction callbacks such as `@PreDestroy` or `DisposableBean.destroy()` when the context closes.
+During startup it also applies \`ApplicationContextInitializer\`s, refreshes the context, and triggers \`ApplicationRunner\` and \`CommandLineRunner\` beans. For web applications, it bootstraps an embedded servlet container like Tomcat or Jetty.
 
-As a senior engineer, I also use `SmartInitializingSingleton` and custom post-processors to plug cross-cutting behavior into lifecycle events.
+\### Q: Explain Spring Bean lifecycle.
 
-### Q: Singleton bean thread safety.
+A: The lifecycle starts with bean instantiation, dependency injection, \`BeanNameAware\`/\`BeanFactoryAware\` callbacks, \`BeanPostProcessor\` pre-processing, \`@PostConstruct\` or \`afterPropertiesSet()\`, and finally \`BeanPostProcessor\` post-processing. For singleton beans, the lifecycle ends with destruction callbacks such as \`@PreDestroy\` or \`DisposableBean.destroy()\` when the context closes.
+
+As a senior engineer, I also use \`SmartInitializingSingleton\` and custom post-processors to plug cross-cutting behavior into lifecycle events.
+
+\### Q: Singleton bean thread safety.
+
 A: Singleton beans are shared across threads, so thread safety depends on whether the bean maintains mutable state. I treat singleton services as stateless by default; if state is required, I use thread-safe structures, immutability, or properly scoped beans.
 
-For example, a cache service may use `ConcurrentHashMap`, while request-scoped data stays in `ThreadLocal` or request-scoped beans.
+For example, a cache service may use \`ConcurrentHashMap\`, while request-scoped data stays in \`ThreadLocal\` or request-scoped beans.
 
-### Q: Difference between `@Component`, `@Service`, and `@Repository`.
-A: All three are Spring stereotypes that register a bean in the context. `@Component` is generic, `@Service` signals a service layer component, and `@Repository` signals data access and enables persistence exception translation.
+\### Q: Difference between \`@Component\`, \`@Service\`, and \`@Repository\`.
+
+A: All three are Spring stereotypes that register a bean in the context. \`@Component\` is generic, \`@Service\` signals a service layer component, and \`@Repository\` signals data access and enables persistence exception translation.
 
 I use the specific stereotypes for semantic clarity and to follow layering conventions in enterprise applications.
 
-### Q: Constructor vs Field Injection.
+\### Q: Constructor vs Field Injection.
+
 A: Constructor injection is my preferred pattern because it makes dependencies explicit, supports immutability, enables easier unit testing, and prevents partially initialized beans. Field injection hides dependencies and makes a class harder to use outside Spring.
 
 In a large codebase, constructor injection also helps catch missing dependencies at compile time.
 
-### Q: How does `@Transactional` work?
-A: `@Transactional` is implemented via AOP proxies that wrap a method call. The proxy starts a transaction before invoking the target method and commits or rolls back afterward depending on the outcome and the rollback rules.
+\### Q: How does \`@Transactional\` work?
+
+A: \`@Transactional\` is implemented via AOP proxies that wrap a method call. The proxy starts a transaction before invoking the target method and commits or rolls back afterward depending on the outcome and the rollback rules.
 
 I am careful with self-invocation because internal calls bypass the proxy. In production code, I isolate transactional boundaries in public service methods and keep transactional methods small and well-scoped.
 
-### Q: Propagation levels.
+\### Q: Propagation levels.
+
 A: I use propagation levels to control whether a method participates in an existing transaction or starts a new one. Common levels are:
-- `REQUIRED`: join existing or create new
-- `REQUIRES_NEW`: suspend existing and create a new transaction
-- `SUPPORTS`: join if present, otherwise run non-transactionally
-- `NOT_SUPPORTED`: execute outside any transaction
-- `MANDATORY`: require an existing transaction
-- `NESTED`: create a nested savepoint-based transaction within a larger one
 
-I typically use `REQUIRED`, and I choose `REQUIRES_NEW` for audit/logging or compensation actions that must commit independently.
+\- \`REQUIRED\`: join existing or create new
 
-### Q: Isolation levels.
+\- \`REQUIRES\_NEW\`: suspend existing and create a new transaction
+
+\- \`SUPPORTS\`: join if present, otherwise run non-transactionally
+
+\- \`NOT\_SUPPORTED\`: execute outside any transaction
+
+\- \`MANDATORY\`: require an existing transaction
+
+\- \`NESTED\`: create a nested savepoint-based transaction within a larger one
+
+I typically use \`REQUIRED\`, and I choose \`REQUIRES\_NEW\` for audit/logging or compensation actions that must commit independently.
+
+\### Q: Isolation levels.
+
 A: Isolation controls concurrent visibility. In Spring, common levels map to database behavior:
-- `READ_UNCOMMITTED`: dirty reads allowed
-- `READ_COMMITTED`: no dirty reads
-- `REPEATABLE_READ`: stable repeated reads, still possible phantom reads depending on DB
-- `SERIALIZABLE`: full isolation, highest contention
 
-I use `READ_COMMITTED` as a sensible default and raise isolation only when business correctness demands it.
+\- \`READ\_UNCOMMITTED\`: dirty reads allowed
 
-### Q: Lazy vs Eager loading.
-A: Eager loading fetches associated entities immediately, while lazy loading defers fetch until the association is accessed. I default to `FetchType.LAZY` for collections and many-to-one relationships, because eager fetching can cause large joins and unnecessary memory pressure.
+\- \`READ\_COMMITTED\`: no dirty reads
+
+\- \`REPEATABLE\_READ\`: stable repeated reads, still possible phantom reads depending on DB
+
+\- \`SERIALIZABLE\`: full isolation, highest contention
+
+I use \`READ\_COMMITTED\` as a sensible default and raise isolation only when business correctness demands it.
+
+\### Q: Lazy vs Eager loading.
+
+A: Eager loading fetches associated entities immediately, while lazy loading defers fetch until the association is accessed. I default to \`FetchType.LAZY\` for collections and many-to-one relationships, because eager fetching can cause large joins and unnecessary memory pressure.
 
 To avoid LazyInitializationException, I either open a transaction around the view, use DTO projections, or explicitly initialize associations with fetch joins.
 
-### Q: Solve the N+1 query problem.
-A: I identify N+1 with query logging and performance tools, then refactor the data access layer. Common fixes are `JOIN FETCH`, entity graphs, or batch fetching.
+\### Q: Solve the N+1 query problem.
+
+A: I identify N+1 with query logging and performance tools, then refactor the data access layer. Common fixes are \`JOIN FETCH\`, entity graphs, or batch fetching.
 
 In one project, I replaced repeated lazy loads in a list rendering flow with a single optimized query and reduced database round trips by 90%.
 
-### Q: Spring Security authentication flow.
-A: Spring Security uses a chain of servlet filters. Credentials are extracted by an authentication filter, turned into an `Authentication` token, and passed to the `AuthenticationManager`. The manager delegates to configured `AuthenticationProvider`s.
+\### Q: Spring Security authentication flow.
 
-On success, the `SecurityContextHolder` stores the `Authentication`. Authorization is then performed by access decision voters or method security interceptors based on roles and authorities.
+A: Spring Security uses a chain of servlet filters. Credentials are extracted by an authentication filter, turned into an \`Authentication\` token, and passed to the \`AuthenticationManager\`. The manager delegates to configured \`AuthenticationProvider\`s.
 
-### Q: JWT implementation.
+On success, the \`SecurityContextHolder\` stores the \`Authentication\`. Authorization is then performed by access decision voters or method security interceptors based on roles and authorities.
+
+\### Q: JWT implementation.
+
 A: I implement JWT by issuing a signed token after authentication, including standard claims such as subject, issuer, expiry, and optionally custom claims. The token is returned to the client and validated on each request via a filter.
 
 I also design refresh tokens for long-lived sessions, rotate secrets when necessary, and mitigate replay attacks by storing token identifiers or using short expiration windows.
 
-### Q: Exception handling using `@ControllerAdvice`.
-A: `@ControllerAdvice` centralizes exception mapping across controllers. I map application exceptions to structured error responses and standard HTTP statuses, often producing a uniform payload with `errorCode`, `message`, and `timestamp`.
+\### Q: Exception handling using \`@ControllerAdvice\`.
+
+A: \`@ControllerAdvice\` centralizes exception mapping across controllers. I map application exceptions to structured error responses and standard HTTP statuses, often producing a uniform payload with \`errorCode\`, \`message\`, and \`timestamp\`.
 
 This keeps controllers clean and provides consistent client behavior.
 
-### Q: Validation using Bean Validation.
-A: I use Hibernate Validator annotations like `@NotNull`, `@Size`, `@Email`, and custom constraint validators. I validate request payloads with `@Valid` and handle violations centrally, returning meaningful validation errors to API clients.
+\### Q: Validation using Bean Validation.
+
+A: I use Hibernate Validator annotations like \`@NotNull\`, \`@Size\`, \`@Email\`, and custom constraint validators. I validate request payloads with \`@Valid\` and handle violations centrally, returning meaningful validation errors to API clients.
 
 In complex forms, I also use validation groups for scenario-specific rules.
 
----
+\---
 
-## 3. Microservices
+\## 3. Microservices
 
-### Q: Why Microservices?
+\### Q: Why Microservices?
+
 A: Microservices are valuable when a monolith becomes too difficult to evolve. They provide independent deployability, scaling by service, team autonomy, and technology choice per bounded context.
 
 That said, I only choose microservices when the domain and operational overhead justify the complexity. In early stages of systems, a modular monolith is often the better option.
 
-### Q: Service Discovery.
+\### Q: Service Discovery.
+
 A: Service discovery allows services to locate each other dynamically, either with client-side discovery (service registry + load balancing in the client) or server-side discovery (API gateway/load balancer resolves service instances).
 
 I have used Eureka, Consul, and Kubernetes DNS in different environments, and I prefer solutions that integrate cleanly with the deployment platform.
 
-### Q: API Gateway.
+\### Q: API Gateway.
+
 A: An API gateway is the edge entry point that routes requests, enforces security, performs request aggregation, rate limiting, and can offload cross-cutting concerns like authentication and caching.
 
 In production, I use API gateways to simplify client interactions and protect backend services from direct access.
 
-### Q: Circuit Breaker.
+\### Q: Circuit Breaker.
+
 A: A circuit breaker prevents repeated calls to a failing downstream service. After failures exceed a threshold, the circuit opens and subsequent calls fail fast or fall back.
 
 I have implemented circuit breakers with Resilience4j in microservices to improve resiliency and reduce cascading outages.
 
-### Q: Retry vs Timeout.
+\### Q: Retry vs Timeout.
+
 A: Timeout limits how long a call waits; retry attempts a failed call again. Both are essential together: a timeout prevents a slow dependency from blocking forever, while retries handle transient failures.
 
 In a mature system, I use exponential backoff and jitter to avoid retry storms.
 
-### Q: Bulkhead Pattern.
+\### Q: Bulkhead Pattern.
+
 A: Bulkheads isolate resources so a failure in one part does not consume all capacity. I use separate thread pools, connection pools, or rate-limited queues for critical paths versus background work.
 
 This is especially important in services that call multiple external APIs.
 
-### Q: Saga Pattern.
+\### Q: Saga Pattern.
+
 A: The Saga pattern handles distributed business transactions by chaining local transactions with compensating actions. I use choreography for loosely coupled services and orchestration when explicit control is required.
 
 A common example is order processing where payment, inventory, and shipping are separate services with compensating rollback steps.
 
-### Q: Event-driven architecture.
+\### Q: Event-driven architecture.
+
 A: In event-driven systems, services communicate through events instead of direct synchronous calls. This decouples producers and consumers and improves scalability.
 
 I have built event-driven pipelines with Kafka and AWS SNS/SQS, using event schemas, idempotent consumers, and partitioning strategies.
 
-### Q: Synchronous vs Asynchronous communication.
+\### Q: Synchronous vs Asynchronous communication.
+
 A: Synchronous communication is easier to reason about, but it increases coupling and latency. Asynchronous communication improves resilience and scalability, but it adds complexity in error handling and consistency.
 
 I choose sync for real-time API flows and async for workflows where eventual consistency is acceptable.
 
-### Q: Idempotency in REST APIs.
+\### Q: Idempotency in REST APIs.
+
 A: Idempotency ensures repeated requests have the same effect. I implement it with idempotency keys, request deduplication, and by designing operations around idempotent HTTP verbs whenever possible.
 
 For example, payment and booking APIs use unique client-generated request IDs and store them in a deduplication table.
 
-### Q: Distributed transactions.
+\### Q: Distributed transactions.
+
 A: Distributed transactions are difficult in microservices, so I prefer eventual consistency patterns such as sagas or compensating actions. Two-phase commit is rare in cloud-native designs because it increases coupling and reduces availability.
 
 When I do need strong consistency, I design carefully around a single authoritative data store or use database-level sharding and transaction managers.
 
----
+\---
 
-## 4. SQL
+\## 4. SQL
 
-### Q: Second highest salary.
+\### Q: Second highest salary.
+
 A: A robust SQL solution is:
 
-```sql
+\`\`\`sql
+
 SELECT salary
+
 FROM (
-    SELECT salary,
-           DENSE_RANK() OVER (ORDER BY salary DESC) AS rank
-    FROM employees
+
+SELECT salary,
+
+DENSE\_RANK() OVER (ORDER BY salary DESC) AS rank
+
+FROM employees
+
 ) t
+
 WHERE rank = 2;
-```
+
+\`\`\`
 
 In systems with large tables, I also consider performance and use indexes on salary.
 
-### Q: Department-wise highest salary.
+\### Q: Department-wise highest salary.
+
 A: I typically write:
 
-```sql
-SELECT department_id,
-       MAX(salary) AS highest_salary
+\`\`\`sql
+
+SELECT department\_id,
+
+MAX(salary) AS highest\_salary
+
 FROM employees
-GROUP BY department_id;
-```
+
+GROUP BY department\_id;
+
+\`\`\`
 
 For additional detail, I join back to the employee table if I need the employee record as well.
 
-### Q: Difference between `ROW_NUMBER()`, `RANK()`, and `DENSE_RANK()`.
-A: `ROW_NUMBER()` assigns a unique sequential number to each row. `RANK()` assigns the same rank to ties and leaves gaps afterward. `DENSE_RANK()` assigns the same rank to ties but does not leave gaps.
+\### Q: Difference between \`ROW\_NUMBER()\`, \`RANK()\`, and \`DENSE\_RANK()\`.
+
+A: \`ROW\_NUMBER()\` assigns a unique sequential number to each row. \`RANK()\` assigns the same rank to ties and leaves gaps afterward. \`DENSE\_RANK()\` assigns the same rank to ties but does not leave gaps.
 
 I choose the function based on whether gaps are acceptable in ranking results.
 
-### Q: Index types.
+\### Q: Index types.
+
 A: Important index types are B-tree indexes for general lookup and range scans, hash indexes for exact match lookups, unique indexes, composite indexes, partial/index-filtered indexes, and full-text indexes.
 
 In production databases, I also consider covering indexes to reduce lookups and index-only scans.
 
-### Q: Clustered vs Non-clustered index.
+\### Q: Clustered vs Non-clustered index.
+
 A: A clustered index defines the physical order of rows in the table. A non-clustered index stores pointers to the data rows and can be created on additional columns.
 
 Because there is usually one clustered index per table, I choose it carefully for the most common range or ordering queries.
 
-### Q: Composite index.
+\### Q: Composite index.
+
 A: Composite indexes include multiple columns and are most effective when queries filter or sort by the leftmost columns. I avoid redundant composite indexes and rely on index selectivity when designing them.
 
-### Q: Explain query execution.
+\### Q: Explain query execution.
+
 A: Query execution starts with parsing, then semantic analysis, optimization, and plan generation. The optimizer chooses join orders, access methods, and whether to use indexes. The execution engine then reads data, joins rows, and returns results.
 
 I use execution plans and statistics to diagnose performance issues.
 
-### Q: ACID properties.
+\### Q: ACID properties.
+
 A: ACID stands for Atomicity, Consistency, Isolation, and Durability. It guarantees that transactions are all-or-nothing, keep the database in a valid state, isolate concurrent transactions, and persist committed changes.
 
 In distributed systems, I map these guarantees carefully to business requirements and often relax strict consistency in favor of availability.
 
-### Q: Deadlock.
+\### Q: Deadlock.
+
 A: Deadlocks occur when transactions hold locks the others need and form a circular wait. I troubleshoot them by analyzing lock wait graphs and by enforcing consistent lock order, keeping transactions short, and using lower isolation levels when appropriate.
 
 Many DBMSes detect deadlocks automatically and abort one transaction; in the application I handle retries for that case.
 
-### Q: Optimizing slow queries.
+\### Q: Optimizing slow queries.
+
 A: I optimize queries by reviewing execution plans, checking missing or unused indexes, rewriting slow joins, avoiding functions in predicates, and reducing data volume with projections and filters.
 
 I also evaluate whether the logic belongs in the database or the application layer, and sometimes introduce caching for repeated expensive queries.
 
----
+\---
 
-## 5. System Design
+\## 5. System Design
 
-### Q: Design a Notification Service.
+\### Q: Design a Notification Service.
+
 A: I would design a notification service as an event-driven system with producers publishing notification events into a queue or stream. A dispatcher reads events, resolves user preferences, and routes messages to channels such as email, SMS, push, and webhook.
 
 Key concerns are delivery guarantees, retry/backoff, idempotency, channel-specific adapters, and observability. I also separate the notification workflow from transactional business logic to keep the core services responsive.
 
-### Q: Design a URL Shortener.
+\### Q: Design a URL Shortener.
+
 A: A URL shortener needs a unique code generator, a persistent mapping store, redirection logic, analytics, and abuse protection. I’d use a base62 or base64 encoding over a sequential or hashed ID, store mappings in a highly available datastore, cache popular entries, and guard against collisions.
 
 For scale, I would shard the mapping store and use CDN caching for redirects.
 
-### Q: Design an Insurance Policy Service.
+\### Q: Design an Insurance Policy Service.
+
 A: I would model core entities like policy, coverage, customer, premium, and claim. The service would expose APIs for quoting, issuing, renewing, and submitting claims.
 
 Operational concerns include validation rules, versioned policy documents, audit trails, workflow state transitions, and integration with underwriting, billing, and document generation services.
 
-### Q: How would you scale a Spring Boot application?
+\### Q: How would you scale a Spring Boot application?
+
 A: I scale Spring Boot horizontally by deploying stateless instances behind a load balancer, externalizing session and cache state to Redis, and using a connection pool. I also monitor CPU, memory, GC, thread pools, and DB connections to determine when to scale up or out.
 
 For CPU-heavy workloads, I tune thread pools and use asynchronous processing to avoid blocking worker threads.
 
-### Q: Database sharding.
+\### Q: Database sharding.
+
 A: Sharding partitions data across multiple database instances by a shard key, improving write and storage scalability. I weigh the benefits against the complexity of cross-shard queries, rebalancing, and distributed joins.
 
 When I use sharding, I choose a shard key carefully and prefer application-level routing or middleware that keeps most queries within one shard.
 
-### Q: Caching using Redis.
+\### Q: Caching using Redis.
+
 A: I use Redis for read-through or cache-aside patterns, session storage, rate limiting, and pub/sub. I design eviction policies, TTLs, and cache invalidation carefully to avoid stale data.
 
 In high-scale systems, I also use Redis clusters and monitor memory usage to prevent OOM conditions.
 
-### Q: Rate limiting.
+\### Q: Rate limiting.
+
 A: I implement rate limiting with distributed counters in Redis or the API gateway. Token bucket and fixed-window algorithms are common, and I add per-user and global limits depending on business needs.
 
 Rate limiting protects services from spikes and abuse while enabling graceful degradation.
 
-### Q: Load balancing.
+\### Q: Load balancing.
+
 A: Load balancing distributes requests across healthy instances. I use a combination of DNS-based load balancing, reverse proxies, and cloud-managed load balancers, with health checks to avoid sending traffic to unhealthy nodes.
 
 I also consider sticky sessions only when necessary and prefer stateless designs.
 
-### Q: High availability.
+\### Q: High availability.
+
 A: High availability requires redundancy, failover, monitoring, and multi-zone deployment. I design services to be resilient to instance or node failure, use circuit breakers, and ensure that no single point of failure exists.
 
 I also plan for disaster recovery with backups, replication, and automation scripts.
 
-### Q: Logging and monitoring.
+\### Q: Logging and monitoring.
+
 A: I centralize logs with solutions like ELK/EFK or Splunk, collect metrics with Prometheus, and use distributed tracing with OpenTelemetry. Reliable alerting on latency, errors, saturation, and business KPIs is essential for production support.
 
----
+\---
 
-## 6. REST API
+\## 6. REST API
 
-### Q: REST principles.
+\### Q: REST principles.
+
 A: REST principles include statelessness, resource-based endpoints, uniform use of HTTP verbs, meaningful URIs, and hypermedia when appropriate. I build APIs around resources and use standard response codes to make contracts predictable.
 
-### Q: PUT vs PATCH.
-A: `PUT` performs a complete replacement of the resource, while `PATCH` applies a partial update. `PUT` is idempotent, and `PATCH` is used when only a subset of fields need changing.
+\### Q: PUT vs PATCH.
 
-### Q: POST idempotency.
-A: `POST` is not inherently idempotent, but I make it idempotent by using client-generated request IDs or deduplication tokens for create operations.
+A: \`PUT\` performs a complete replacement of the resource, while \`PATCH\` applies a partial update. \`PUT\` is idempotent, and \`PATCH\` is used when only a subset of fields need changing.
+
+\### Q: POST idempotency.
+
+A: \`POST\` is not inherently idempotent, but I make it idempotent by using client-generated request IDs or deduplication tokens for create operations.
 
 This avoids duplicate side effects when clients retry due to network issues.
 
-### Q: API versioning.
-A: I version APIs with URI paths (`/v1/orders`) for clarity and compatibility. I also use headers or content negotiation for advanced versioning schemes when needed.
+\### Q: API versioning.
+
+A: I version APIs with URI paths (\`/v1/orders\`) for clarity and compatibility. I also use headers or content negotiation for advanced versioning schemes when needed.
 
 The goal is to evolve without breaking existing clients.
 
-### Q: Pagination.
+\### Q: Pagination.
+
 A: I implement pagination with limit/offset for simple use cases and cursor/keyset pagination for larger or ordered data sets. Cursor-based pagination is more efficient and avoids inconsistent results from inserts or deletes during traversal.
 
-### Q: HATEOAS.
+\### Q: HATEOAS.
+
 A: HATEOAS adds hypermedia links to responses so clients can discover available actions. I use it in APIs where the client benefits from navigation hints and state transitions.
 
-### Q: HTTP status codes.
+\### Q: HTTP status codes.
+
 A: I use 2xx for successful responses, 4xx for client errors, and 5xx for server errors. Common mappings are 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, and 500 Internal Server Error.
 
-### Q: Authentication vs Authorization.
+\### Q: Authentication vs Authorization.
+
 A: Authentication verifies who the request is from. Authorization decides what that authenticated user is allowed to do. Both are separate concerns in secure API design.
 
----
+\---
 
-## 7. Cloud & DevOps
+\## 7. Cloud & DevOps
 
-### Q: Docker lifecycle.
+\### Q: Docker lifecycle.
+
 A: Docker lifecycle includes authoring a Dockerfile, building an image, running a container, monitoring its health, and cleaning up unused images and containers. I also use multi-stage builds to keep images small and secure.
 
-### Q: Kubernetes Pods and Deployments.
+\### Q: Kubernetes Pods and Deployments.
+
 A: A Pod is the smallest deployable unit and can contain one or more containers. A Deployment manages replica sets, rolling updates, and declarative scaling for Pods.
 
-### Q: CI/CD pipeline.
+\### Q: CI/CD pipeline.
+
 A: A CI/CD pipeline automates building, testing, and deploying code. Good pipelines include linting, unit tests, integration tests, security scans, and staged deployments to environments such as staging and production.
 
-### Q: Health checks.
+\### Q: Health checks.
+
 A: Health checks verify that a service is functioning. Liveness checks ensure the container is alive, while readiness checks ensure the service is ready to accept traffic.
 
-### Q: Readiness vs Liveness probes.
+\### Q: Readiness vs Liveness probes.
+
 A: Liveness probes restart unhealthy containers. Readiness probes keep a container out of service until it is ready.
 
-### Q: Environment configuration.
+\### Q: Environment configuration.
+
 A: I externalize configuration using environment variables, config maps, or config servers. This separates code from configuration and supports multiple deployment environments.
 
-### Q: Secrets management.
+\### Q: Secrets management.
+
 A: I store secrets in dedicated tools like Vault, AWS Secrets Manager, or Kubernetes Secrets, and I avoid embedding them in images or source control.
 
-### Q: Logging in production.
+\### Q: Logging in production.
+
 A: Production logging should be centralized, structured, and correlated with request or trace IDs. I set log levels carefully and ensure logs are retained and searchable for troubleshooting.
 
----
+\---
 
-## 8. Scenario-Based Questions
+\## 8. Scenario-Based Questions
 
-### Q: Production application is slow. How do you troubleshoot?
+\### Q: Production application is slow. How do you troubleshoot?
+
 A: I gather metrics first: latency, CPU, memory, thread pools, GC, database time, and external call duration. Then I correlate those with logs and recent deployments, identify hotspots, and isolate whether the bottleneck is application code, database, network, or infrastructure.
 
-### Q: High CPU utilization.
+\### Q: High CPU utilization.
+
 A: I inspect the hottest threads, use profiling or thread dumps, and search for tight loops, inefficient algorithms, or GC pressure. In one case, rewriting a CPU-bound serialization loop reduced CPU usage by 40%.
 
-### Q: Memory leak investigation.
+\### Q: Memory leak investigation.
+
 A: I compare heap dumps, analyze retained object graphs, and look for caches or collections that keep growing. I also check for native memory leaks in thread local allocations or JNI code.
 
-### Q: Thread pool exhaustion.
+\### Q: Thread pool exhaustion.
+
 A: I review thread pool sizing, queue usage, and task duration. If tasks block on I/O or external calls, I either increase pool capacity, use asynchronous non-blocking I/O, or split work into separate pools.
 
-### Q: Database connection pool exhaustion.
-A: I check pool metrics, idle timeouts, and whether connections are leaked or held too long. In a production incident, a missing `finally` block caused connection leakage; fixing that restored normal throughput.
+\### Q: Database connection pool exhaustion.
 
-### Q: External API timeout.
+A: I check pool metrics, idle timeouts, and whether connections are leaked or held too long. In a production incident, a missing \`finally\` block caused connection leakage; fixing that restored normal throughput.
+
+\### Q: External API timeout.
+
 A: I investigate whether the external dependency is degraded or whether our timeout is too low. I implement circuit breakers and fallback behavior, and I monitor the external service separately.
 
-### Q: Cache inconsistency.
+\### Q: Cache inconsistency.
+
 A: I inspect cache eviction and invalidation paths, TTL settings, and whether writes bypass the cache. I prefer explicit cache-aside invalidation and, when possible, use versioned keys or write-through caches.
 
-### Q: How would you debug a deadlock?
+\### Q: How would you debug a deadlock?
+
 A: I capture thread dumps, identify the locked objects and waiting threads, and map the lock dependency cycle. Then I break the cycle by enforcing lock ordering, reducing lock scope, or moving to lock-free data structures.
 
-### Q: What metrics do you monitor in production?
+\### Q: What metrics do you monitor in production?
+
 A: I monitor request latency, error rates, throughput, CPU/memory, GC pauses, thread pool usage, connection pools, cache hit ratios, and key business metrics like order volume or transaction success rates.
 
----
+\---
 
-## 9. Coding Questions
+\## 9. Coding Questions
 
-### Q: Longest substring without repeating characters.
+\### Q: Longest substring without repeating characters.
+
 A: I solve it with a sliding window and a last-seen index map. This is O(n) time and is robust for long strings.
 
-### Q: LRU Cache.
-A: I implement an LRU cache with `LinkedHashMap` or a custom combination of a doubly-linked list and hashmap, providing O(1) get/put operations and deterministic eviction.
+\### Q: LRU Cache.
 
-### Q: Merge intervals.
+A: I implement an LRU cache with \`LinkedHashMap\` or a custom combination of a doubly-linked list and hashmap, providing O(1) get/put operations and deterministic eviction.
+
+\### Q: Merge intervals.
+
 A: I sort intervals by start time and merge overlapping ranges in one pass. This is effective for scheduling, calendar, and resource allocation problems.
 
-### Q: Reverse linked list.
-A: I reverse a linked list iteratively with `prev`, `current`, and `next` pointers to avoid recursion overhead.
+\### Q: Reverse linked list.
 
-### Q: Detect cycle in linked list.
+A: I reverse a linked list iteratively with \`prev\`, \`current\`, and \`next\` pointers to avoid recursion overhead.
+
+\### Q: Detect cycle in linked list.
+
 A: I use Floyd’s cycle-finding algorithm with slow and fast pointers. If they meet, there is a cycle.
 
-### Q: Binary search variations.
+\### Q: Binary search variations.
+
 A: I implement standard binary search and variants for lower/upper bound, first/last occurrence, and rotated arrays. I also handle edge cases carefully to avoid infinite loops.
 
-### Q: Top K frequent elements.
+\### Q: Top K frequent elements.
+
 A: I count frequencies in a map and use a min-heap or bucket sort to extract the top K. For large streams, I consider approximate algorithms if exact ranking is too expensive.
 
-### Q: Producer-Consumer implementation.
-A: I implement it using `BlockingQueue` and thread pools, with proper shutdown coordination and optional backpressure when producers outpace consumers.
+\### Q: Producer-Consumer implementation.
 
-### Q: Implement custom cache.
+A: I implement it using \`BlockingQueue\` and thread pools, with proper shutdown coordination and optional backpressure when producers outpace consumers.
+
+\### Q: Implement custom cache.
+
 A: I build custom caches with eviction policies like LRU, TTL, or size-based eviction, using a hashmap for lookup and a linked structure to maintain eviction order.
 
-### Q: Stream API coding questions.
-A: I use `stream()`, `filter`, `map`, `collect`, `flatMap`, and `groupingBy` for data transformations, but I avoid parallel streams in code paths that are not CPU-bound or where thread safety is unclear.
+\### Q: Stream API coding questions.
 
----
+A: I use \`stream()\`, \`filter\`, \`map\`, \`collect\`, \`flatMap\`, and \`groupingBy\` for data transformations, but I avoid parallel streams in code paths that are not CPU-bound or where thread safety is unclear.
 
-## 10. Behavioral Questions
+\---
 
-### Q: Tell me about yourself.
+\## 10. Behavioral Questions
+
+\### Q: Tell me about yourself.
+
 A: I am a senior software engineer with 7 years of experience building Java, Spring Boot, and cloud-native systems. I focus on designing maintainable services, improving performance, and helping teams deliver reliable production systems.
 
-### Q: Explain your current project.
+\### Q: Explain your current project.
+
 A: I am working on a distributed insurance platform where I contribute to service design, API development, and operational stability. I own features from requirement through deployment and help improve observability and incident response.
 
-### Q: Biggest production issue you solved.
+\### Q: Biggest production issue you solved.
+
 A: I fixed a production latency issue caused by an N+1 query and an overloaded message queue. I redesigned the data access layer, introduced batching, and implemented backpressure, which improved response times and reduced CPU load.
 
-### Q: Conflict with a teammate.
+\### Q: Conflict with a teammate.
+
 A: I once disagreed with a teammate over the choice between a quick fix and a more maintainable design. I listened, proposed a compromise, and we chose the design that balanced delivery speed with long-term support.
 
-### Q: Why Sun Life?
+\### Q: Why Sun Life?
+
 A: I am interested in Sun Life because of its focus on digital modernization, its strong engineering culture, and the opportunity to contribute to meaningful financial products.
 
-### Q: Why are you changing jobs?
+\### Q: Why are you changing jobs?
+
 A: I am looking for greater technical challenge, more ownership of architecture, and a team where I can continue growing in cloud-native Java development.
 
-### Q: Leadership experience.
+\### Q: Leadership experience.
+
 A: I have led feature teams, coordinated cross-functional design reviews, and mentored engineers on clean architecture, testing, and operational readiness.
 
-### Q: Mentoring juniors.
+\### Q: Mentoring juniors.
+
 A: I mentor juniors through code reviews, pairing sessions, and by helping them understand systemic issues rather than just fixing syntax.
 
-### Q: Handling tight deadlines.
+\### Q: Handling tight deadlines.
+
 A: I prioritize high-value work, communicate dependencies and risks clearly, and break deliverables into smaller increments so we can deliver reliably under pressure.
 
-### Q: Questions for the interviewer.
+\### Q: Questions for the interviewer.
+
 A: I typically ask about the team’s architecture, technical challenges, deployment practices, and how success is measured for the role.
 
----
+\---
 
-## Additional Senior Questions
+\## Additional Senior Questions
 
-### Q: What metrics do you use to measure code quality?
+\### Q: What metrics do you use to measure code quality?
+
 A: I measure code quality using test coverage, code smells, static analysis results, cycle complexity, bug trends, and review feedback.
 
-### Q: How do you ensure API backward compatibility?
+\### Q: How do you ensure API backward compatibility?
+
 A: I ensure compatibility by versioning endpoints, deprecating old behavior gradually, and avoiding breaking changes in payloads and contract semantics.
 
-### Q: How do you manage technical debt?
+\### Q: How do you manage technical debt?
+
 A: I document technical debt, prioritize it with stakeholders, and allocate time for refactoring while balancing new feature delivery.
+
 '''
-with open('/home/saurabh-sukant/interview_new.md','w') as f:
-    f.write(content)
+
+with open('/home/saurabh-sukant/interview\_new.md','w') as f:
+
+f.write(content)
