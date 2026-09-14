@@ -1,0 +1,752 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Saurabh's Interview Preparation Notes">
+
+    <title>Interview Prep</title>
+
+    <style>
+        :root {
+            --bg: #f7f8fa;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --header: #111827;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* =========================
+           HEADER
+           ========================= */
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 64px;
+
+            background: var(--header);
+            color: white;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 24px;
+
+            z-index: 1000;
+
+            box-shadow:
+                0 2px 10px rgba(0,0,0,.15);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+
+            white-space: nowrap;
+
+            margin-right: 32px;
+        }
+
+        .logo span {
+            color: #60a5fa;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+
+            overflow-x: auto;
+
+            scrollbar-width: none;
+        }
+
+        nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        nav a {
+            color: #d1d5db;
+
+            text-decoration: none;
+
+            padding: 9px 13px;
+
+            border-radius: 7px;
+
+            font-size: 14px;
+
+            white-space: nowrap;
+
+            transition: .2s;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: #374151;
+            color: white;
+        }
+
+        .github {
+            margin-left: auto;
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+
+            padding: 8px 12px;
+
+            border: 1px solid #4b5563;
+
+            border-radius: 7px;
+        }
+
+        .github:hover {
+            background: #374151;
+        }
+
+        /* =========================
+           LAYOUT
+           ========================= */
+
+        .layout {
+            display: flex;
+
+            margin-top: 64px;
+
+            min-height: calc(100vh - 64px);
+        }
+
+        /* =========================
+           SIDEBAR
+           ========================= */
+
+        aside {
+            position: fixed;
+
+            top: 64px;
+            bottom: 0;
+
+            width: var(--sidebar-width);
+
+            overflow-y: auto;
+
+            background: var(--surface);
+
+            border-right: 1px solid var(--border);
+
+            padding: 22px 16px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+            color: var(--muted);
+
+            margin-bottom: 12px;
+
+            font-weight: 700;
+        }
+
+        #pageList {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 3px;
+        }
+
+        #pageList a {
+            text-decoration: none;
+
+            color: var(--text);
+
+            padding: 9px 11px;
+
+            border-radius: 7px;
+
+            font-size: 14px;
+        }
+
+        #pageList a:hover,
+        #pageList a.active {
+            background: #eff6ff;
+
+            color: var(--primary);
+
+            font-weight: 600;
+        }
+
+        /* =========================
+           CONTENT
+           ========================= */
+
+        main {
+            margin-left: var(--sidebar-width);
+
+            width: calc(100% - var(--sidebar-width));
+
+            padding: 40px;
+
+            min-width: 0;
+        }
+
+        .welcome {
+            max-width: 900px;
+
+            margin: 0 auto;
+        }
+
+        .welcome h1 {
+            font-size: 38px;
+
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+
+            line-height: 1.7;
+
+            font-size: 17px;
+        }
+
+        .cards {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(220px, 1fr));
+
+            gap: 18px;
+
+            margin-top: 35px;
+        }
+
+        .card {
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+
+            padding: 22px;
+
+            text-decoration: none;
+
+            color: var(--text);
+
+            transition: .2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+
+            border-color: #bfdbfe;
+
+            box-shadow:
+                0 8px 25px rgba(0,0,0,.06);
+        }
+
+        .card h3 {
+            margin: 0 0 8px;
+        }
+
+        .card p {
+            margin: 0;
+
+            color: var(--muted);
+
+            font-size: 14px;
+        }
+
+        /* =========================
+           MOBILE
+           ========================= */
+
+        @media (max-width: 800px) {
+
+            header {
+                padding: 0 14px;
+            }
+
+            .logo {
+                margin-right: 12px;
+            }
+
+            .github {
+                display: none;
+            }
+
+            aside {
+                display: none;
+            }
+
+            main {
+                margin-left: 0;
+
+                width: 100%;
+
+                padding: 25px 18px;
+            }
+
+            .welcome h1 {
+                font-size: 30px;
+            }
+        }
+
+        /* =========================
+           LOADING
+           ========================= */
+
+        .loading {
+            color: var(--muted);
+
+            padding: 20px 0;
+
+            font-size: 14px;
+        }
+
+        .error {
+            color: #dc2626;
+
+            background: #fef2f2;
+
+            border: 1px solid #fecaca;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        ☕ Interview<span>Prep</span>
+    </div>
+
+    <!-- Automatically populated -->
+    <nav id="topNav">
+        <span class="loading">Loading...</span>
+    </nav>
+
+    <a
+        class="github"
+        href="https://github.com/SaurabhSukant75/interviewPrep"
+        target="_blank">
+        GitHub ↗
+    </a>
+
+</header>
+
+
+<div class="layout">
+
+    <aside>
+
+        <div class="sidebar-title">
+            Study Material
+        </div>
+
+        <div id="pageList">
+            <div class="loading">
+                Loading pages...
+            </div>
+        </div>
+
+    </aside>
+
+
+    <main>
+
+        <section class="welcome">
+
+            <h1>
+                Interview Preparation
+            </h1>
+
+            <p>
+                A centralized reading space for Java,
+                Spring Boot, databases, system design,
+                concurrency, collections and other
+                interview preparation topics.
+            </p>
+
+
+            <div
+                id="cards"
+                class="cards">
+
+                <div class="loading">
+                    Discovering pages...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+
+    /*
+     * ==========================================================
+     * CONFIGURATION
+     * ==========================================================
+     */
+
+    const OWNER = "SaurabhSukant75";
+
+    const REPO = "interviewPrep";
+
+    const BRANCH = "main";
+
+    const GITHUB_API =
+        `https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
+
+
+    /*
+     * ==========================================================
+     * DOM
+     * ==========================================================
+     */
+
+    const topNav =
+        document.getElementById("topNav");
+
+    const pageList =
+        document.getElementById("pageList");
+
+    const cards =
+        document.getElementById("cards");
+
+
+    /*
+     * ==========================================================
+     * PAGE NAME
+     * ==========================================================
+     */
+
+    function pageName(path) {
+
+        const file =
+            path.split("/").pop();
+
+        return file
+            .replace(/\.html$/i, "")
+            .replace(/[-_]/g, " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+
+    /*
+     * ==========================================================
+     * ICON
+     * ==========================================================
+     */
+
+    function pageIcon(name) {
+
+        const n =
+            name.toLowerCase();
+
+        if (n.includes("java"))
+            return "☕";
+
+        if (n.includes("spring"))
+            return "🌱";
+
+        if (n.includes("database") ||
+            n.includes("db") ||
+            n.includes("sql"))
+            return "🗄️";
+
+        if (n.includes("system"))
+            return "🏗️";
+
+        if (n.includes("docker"))
+            return "🐳";
+
+        if (n.includes("kafka"))
+            return "📨";
+
+        if (n.includes("kubernetes") ||
+            n.includes("k8s"))
+            return "☸️";
+
+        if (n.includes("aws"))
+            return "☁️";
+
+        if (n.includes("design"))
+            return "📐";
+
+        return "📄";
+    }
+
+
+    /*
+     * ==========================================================
+     * CREATE PAGE URL
+     *
+     * GitHub Pages:
+     *
+     * /interviewPrep/
+     *       |
+     *       +-- Java.html
+     *
+     * becomes:
+     *
+     * /interviewPrep/Java.html
+     * ==========================================================
+     */
+
+    function pageUrl(path) {
+
+        return path
+            .split("/")
+            .map(encodeURIComponent)
+            .join("/");
+    }
+
+
+    /*
+     * ==========================================================
+     * LOAD REPOSITORY
+     * ==========================================================
+     */
+
+    async function loadRepository() {
+
+        try {
+
+            const response =
+                await fetch(GITHUB_API);
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `GitHub API returned ${response.status}`
+                );
+
+            }
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Get HTML pages only.
+             *
+             * Exclude:
+             * - index.html
+             * - files inside .git
+             */
+
+            const pages =
+                data.tree
+                    .filter(item =>
+                        item.type === "blob" &&
+                        /\.html$/i.test(item.path) &&
+                        item.path.toLowerCase() !== "index.html"
+                    )
+                    .map(item => item.path)
+                    .sort();
+
+
+            renderNavigation(pages);
+
+            renderSidebar(pages);
+
+            renderCards(pages);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            topNav.innerHTML =
+                `<span>Unable to load pages</span>`;
+
+            pageList.innerHTML =
+                `<div class="error">
+                    Unable to load repository pages.
+                    <br><br>
+                    ${error.message}
+                </div>`;
+
+            cards.innerHTML = "";
+
+        }
+
+    }
+
+
+    /*
+     * ==========================================================
+     * TOP NAVIGATION
+     * ==========================================================
+     */
+
+    function renderNavigation(pages) {
+
+        topNav.innerHTML = "";
+
+        pages.forEach(path => {
+
+            const name =
+                pageName(path);
+
+            const link =
+                document.createElement("a");
+
+            link.href =
+                pageUrl(path);
+
+            link.textContent =
+                name;
+
+            topNav.appendChild(link);
+
+        });
+
+    }
+
+
+    /*
+     * ==========================================================
+     * SIDEBAR
+     * ==========================================================
+     */
+
+    function renderSidebar(pages) {
+
+        pageList.innerHTML = "";
+
+        pages.forEach(path => {
+
+            const name =
+                pageName(path);
+
+            const link =
+                document.createElement("a");
+
+            link.href =
+                pageUrl(path);
+
+            link.innerHTML =
+                `${pageIcon(name)} &nbsp; ${name}`;
+
+            pageList.appendChild(link);
+
+        });
+
+    }
+
+
+    /*
+     * ==========================================================
+     * CARDS
+     * ==========================================================
+     */
+
+    function renderCards(pages) {
+
+        cards.innerHTML = "";
+
+        pages.forEach(path => {
+
+            const name =
+                pageName(path);
+
+            const card =
+                document.createElement("a");
+
+            card.className =
+                "card";
+
+            card.href =
+                pageUrl(path);
+
+            card.innerHTML = `
+                <h3>
+                    ${pageIcon(name)}
+                    ${name}
+                </h3>
+
+                <p>
+                    Open ${name}
+                    interview preparation notes.
+                </p>
+            `;
+
+            cards.appendChild(card);
+
+        });
+
+    }
+
+
+    /*
+     * ==========================================================
+     * START
+     * ==========================================================
+     */
+
+    loadRepository();
+
+</script>
+
+</body>
+</html>
+```
