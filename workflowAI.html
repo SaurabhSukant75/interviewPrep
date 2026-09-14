@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow — Challenges & Solutions</title>
+<style>
+:root{
+  --bg:#080a0f; --panel:#10141d; --panel2:#151a24; --text:#edf2f7; --muted:#96a0b2;
+  --line:#252c39; --accent:#7c9cff; --accent2:#64e6c0; --warn:#ffca72; --danger:#ff7d8d;
+  --shadow:0 20px 60px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 80% 0%,#18213b 0,transparent 34%),var(--bg);
+font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);line-height:1.55}
+a{color:inherit;text-decoration:none}
+.container{width:min(1180px,92%);margin:auto}
+header{padding:76px 0 48px;border-bottom:1px solid var(--line)}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;color:var(--accent2);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 18px var(--accent2)}
+h1{font-size:clamp(42px,7vw,78px);line-height:.98;letter-spacing:-.055em;margin:20px 0 22px;max-width:850px}
+.hero-copy{font-size:19px;color:var(--muted);max-width:780px}
+.hero-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:28px;align-items:end}
+.metric{background:linear-gradient(145deg,#121823,#0d1118);border:1px solid var(--line);padding:24px;border-radius:20px;box-shadow:var(--shadow)}
+.metric strong{display:block;font-size:42px;letter-spacing:-.05em}
+.metric span{color:var(--muted);font-size:13px}
+nav{position:sticky;top:0;z-index:10;background:rgba(8,10,15,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;gap:8px;overflow:auto;padding:12px 0}
+.nav-inner a{white-space:nowrap;color:var(--muted);padding:8px 12px;border-radius:10px;font-size:13px}
+.nav-inner a:hover{background:var(--panel2);color:var(--text)}
+section{padding:68px 0}
+.section-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:28px}
+.kicker{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.1em}
+h2{font-size:38px;letter-spacing:-.04em;margin:7px 0}
+h3{margin:0 0 9px;font-size:18px}
+.lead{color:var(--muted);max-width:700px}
+.workflow{background:linear-gradient(180deg,#111722,#0c1017);border:1px solid var(--line);border-radius:28px;padding:30px;box-shadow:var(--shadow)}
+.flow{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:center}
+.node{background:var(--panel2);border:1px solid #303849;border-radius:15px;padding:16px 10px;text-align:center;min-height:92px;display:flex;flex-direction:column;justify-content:center}
+.node b{font-size:13px}.node small{color:var(--muted);font-size:10px;margin-top:4px}
+.arrow{text-align:center;color:var(--accent);font-size:22px}
+.principle{margin-top:22px;padding:18px 20px;border-left:3px solid var(--accent2);background:#0e1719;border-radius:0 14px 14px 0;color:#cdd5df}
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.arch-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#1a2231;color:var(--accent2);margin-bottom:12px}
+.codeflow{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#c8d1df;font-size:13px;line-height:2}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.card{background:rgba(16,20,29,.88);border:1px solid var(--line);border-radius:18px;padding:20px;transition:.2s}
+.card:hover{transform:translateY(-2px);border-color:#39455a}
+.num{font-family:ui-monospace,monospace;color:var(--accent);font-size:12px;font-weight:700}
+.problem{color:#d7dde7;font-size:14px;margin-bottom:14px}
+.solution{color:#aeb8c7;font-size:13px;padding-top:13px;border-top:1px solid var(--line)}
+.solution b{color:var(--accent2)}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.tag{font-size:10px;border:1px solid #303847;color:#9eabbc;padding:4px 7px;border-radius:7px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+footer{border-top:1px solid var(--line);padding:35px 0 55px;color:var(--muted);font-size:13px}
+@media(max-width:900px){
+ .hero-grid,.arch{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}
+ .flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}
+}
+@media(max-width:600px){.grid{grid-template-columns:1fr}header{padding-top:52px}h2{font-size:30px}.workflow{padding:18px}}
+</style>
+</head>
+<body>
+<header id="top">
+<div class="container">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Production AI Architecture</div>
+      <h1>AI Workflow<br>Challenges → Solutions</h1>
+      <p class="hero-copy">A practical design guide for building AI workflows that are reliable, observable, secure, recoverable and scalable. The central idea: <strong>let AI reason, but let deterministic software enforce.</strong></p>
+    </div>
+    <div class="metric"><strong>25</strong><span>common production challenges mapped to concrete engineering patterns</span></div>
+  </div>
+</div>
+</header>
+
+<nav><div class="container nav-inner">
+<a href="#architecture">Architecture</a><a href="#challenges">Challenges</a><a href="#principles">Design Principles</a>
+</div></nav>
+
+<main>
+<section id="architecture">
+<div class="container">
+<div class="section-head"><div><div class="kicker">01 / Visual model</div><h2>How a robust AI workflow should run</h2></div></div>
+<div class="workflow">
+<div class="flow">
+  <div class="node"><b>USER</b><small>goal / request</small></div><div class="arrow">→</div>
+  <div class="node"><b>UNDERSTAND</b><small>intent + schema</small></div><div class="arrow">→</div>
+  <div class="node"><b>PLAN</b><small>workflow state</small></div><div class="arrow">→</div>
+  <div class="node"><b>VALIDATE</b><small>policy + schema</small></div>
+</div>
+<div class="flow" style="margin-top:10px">
+  <div class="node"><b>EXECUTE</b><small>tools / APIs</small></div><div class="arrow">→</div>
+  <div class="node"><b>OBSERVE</b><small>traces + events</small></div><div class="arrow">→</div>
+  <div class="node"><b>VERIFY</b><small>result validation</small></div><div class="arrow">→</div>
+  <div class="node"><b>PERSIST</b><small>state + audit</small></div>
+</div>
+<div class="principle"><strong>Core separation:</strong> the LLM handles interpretation and reasoning; schemas, policies, orchestration, authorization, retries, persistence and validation remain under application control.</div>
+</div>
+<div class="arch">
+ <div class="arch-card"><span class="badge">AI is good at</span><h3>Reasoning & interpretation</h3>
+ <div class="codeflow">Understand intent<br>Generate a plan<br>Summarize context<br>Choose among capabilities<br>Interpret unstructured results</div></div>
+ <div class="arch-card"><span class="badge">Software must enforce</span><h3>Control & correctness</h3>
+ <div class="codeflow">Schema validation<br>Authorization<br>Timeout / retry policy<br>State transitions<br>Audit & observability<br>Termination conditions</div></div>
+</div>
+</div>
+</section>
+
+<section id="challenges">
+<div class="container">
+<div class="section-head"><div><div class="kicker">02 / Engineering map</div><h2>25 challenges, one control plane</h2><p class="lead">Each problem is paired with a production pattern that makes the workflow more predictable and operable.</p></div>
+<div class="legend">AI reasoning · deterministic controls · operational resilience</div></div>
+<div class="grid">
+<article class="card"><div class="num">01</div><h3>Ambiguous requirements</h3><div class="problem">User intent is incomplete or contradictory</div><div class="solution"><b>Solution / Pattern</b><br>Intent extraction + structured input schema + clarification gate</div></article><article class="card"><div class="num">02</div><h3>Hallucination</h3><div class="problem">Model invents APIs, facts, parameters, or results</div><div class="solution"><b>Solution / Pattern</b><br>RAG + tool grounding + schema validation + source attribution</div></article><article class="card"><div class="num">03</div><h3>Non-deterministic output</h3><div class="problem">Same input produces different structures</div><div class="solution"><b>Solution / Pattern</b><br>Structured output / JSON schema + validation + constrained generation</div></article><article class="card"><div class="num">04</div><h3>Tool selection</h3><div class="problem">Agent calls wrong tool or wrong API</div><div class="solution"><b>Solution / Pattern</b><br>Tool registry + capability metadata + explicit tool-selection policy</div></article><article class="card"><div class="num">05</div><h3>Tool failures</h3><div class="problem">API timeout, 5xx, malformed response</div><div class="solution"><b>Solution / Pattern</b><br>Retry + timeout + circuit breaker + fallback + error classification</div></article><article class="card"><div class="num">06</div><h3>Long workflows</h3><div class="problem">Context becomes huge and expensive</div><div class="solution"><b>Solution / Pattern</b><br>State machine + checkpoints + summarized state + external persistence</div></article><article class="card"><div class="num">07</div><h3>Context loss</h3><div class="problem">Agent forgets earlier decisions</div><div class="solution"><b>Solution / Pattern</b><br>Explicit workflow state rather than relying only on conversation history</div></article><article class="card"><div class="num">08</div><h3>Infinite loops</h3><div class="problem">Agent repeatedly retries or calls tools</div><div class="solution"><b>Solution / Pattern</b><br>Max iterations + retry budget + termination conditions</div></article><article class="card"><div class="num">09</div><h3>Cost explosion</h3><div class="problem">Too many LLM/tool calls</div><div class="solution"><b>Solution / Pattern</b><br>Model routing + caching + batching + token budgets</div></article><article class="card"><div class="num">10</div><h3>Latency</h3><div class="problem">Sequential calls make workflow slow</div><div class="solution"><b>Solution / Pattern</b><br>Parallel execution + async/non-blocking orchestration</div></article><article class="card"><div class="num">11</div><h3>Data inconsistency</h3><div class="problem">Multiple agents modify state differently</div><div class="solution"><b>Solution / Pattern</b><br>Single source of truth + immutable events + transactional updates</div></article><article class="card"><div class="num">12</div><h3>Security</h3><div class="problem">Prompt injection / malicious tool arguments</div><div class="solution"><b>Solution / Pattern</b><br>Input sanitization + tool authorization + least privilege</div></article><article class="card"><div class="num">13</div><h3>Sensitive data leakage</h3><div class="problem">PII/secrets enter prompts or logs</div><div class="solution"><b>Solution / Pattern</b><br>Data classification + masking + access control + redacted observability</div></article><article class="card"><div class="num">14</div><h3>Agent autonomy</h3><div class="problem">Agent takes actions that shouldn’t be automatic</div><div class="solution"><b>Solution / Pattern</b><br>Human-in-the-loop approval gates</div></article><article class="card"><div class="num">15</div><h3>Poor observability</h3><div class="problem">Impossible to know why agent failed</div><div class="solution"><b>Solution / Pattern</b><br>Distributed tracing + prompt/tool/model traces + correlation ID</div></article><article class="card"><div class="num">16</div><h3>Debugging</h3><div class="problem">Can’t reproduce an AI decision</div><div class="solution"><b>Solution / Pattern</b><br>Capture input → prompt → model → tool → output → state</div></article><article class="card"><div class="num">17</div><h3>Evaluation</h3><div class="problem">Demo works but production quality is poor</div><div class="solution"><b>Solution / Pattern</b><br>Golden datasets + automated evaluation + regression tests</div></article><article class="card"><div class="num">18</div><h3>Prompt drift</h3><div class="problem">Prompt changes unexpectedly affect behavior</div><div class="solution"><b>Solution / Pattern</b><br>Prompt versioning + experiments + regression suite</div></article><article class="card"><div class="num">19</div><h3>Model changes</h3><div class="problem">New model changes workflow behavior</div><div class="solution"><b>Solution / Pattern</b><br>Model abstraction + contract tests + model-specific evaluation</div></article><article class="card"><div class="num">20</div><h3>External API changes</h3><div class="problem">Tool/API contract changes</div><div class="solution"><b>Solution / Pattern</b><br>API contract registry + schema validation + metadata synchronization</div></article><article class="card"><div class="num">21</div><h3>Multi-agent complexity</h3><div class="problem">Agents duplicate work or conflict</div><div class="solution"><b>Solution / Pattern</b><br>Clear agent responsibilities + coordinator/orchestrator</div></article><article class="card"><div class="num">22</div><h3>State recovery</h3><div class="problem">Workflow crashes halfway</div><div class="solution"><b>Solution / Pattern</b><br>Durable state + checkpoint/resume semantics</div></article><article class="card"><div class="num">23</div><h3>Human approval bottleneck</h3><div class="problem">Too many manual decisions</div><div class="solution"><b>Solution / Pattern</b><br>Risk-based approval: auto-approve low-risk, human-review high-risk</div></article><article class="card"><div class="num">24</div><h3>Version compatibility</h3><div class="problem">Prompt/tool/schema versions mismatch</div><div class="solution"><b>Solution / Pattern</b><br>Versioned workflow contracts</div></article><article class="card"><div class="num">25</div><h3>Production governance</h3><div class="problem">No audit trail</div><div class="solution"><b>Solution / Pattern</b><br>Decision log + tool-call audit + workflow execution history</div></article>
+</div>
+</div>
+</section>
+
+<section id="principles">
+<div class="container">
+<div class="section-head"><div><div class="kicker">03 / Design principles</div><h2>Rules that keep AI workflows sane</h2></div></div>
+<div class="arch">
+ <div class="arch-card"><span class="badge">01 — Control</span><h3>Reasoning is not authorization</h3><p class="lead">An agent may propose an action, but policy, permissions and schemas decide whether that action can execute.</p></div>
+ <div class="arch-card"><span class="badge">02 — State</span><h3>Conversation is not workflow state</h3><p class="lead">Persist explicit state, decisions, checkpoints and versions so a workflow can resume without depending on the chat transcript.</p></div>
+ <div class="arch-card"><span class="badge">03 — Resilience</span><h3>Failure is a normal state</h3><p class="lead">Design timeouts, retries, fallbacks, circuit breakers, compensation and recovery before production incidents happen.</p></div>
+ <div class="arch-card"><span class="badge">04 — Evidence</span><h3>Every important decision needs evidence</h3><p class="lead">Capture prompts, model versions, tool calls, inputs, outputs, state transitions and evaluation results with correlation IDs.</p></div>
+</div>
+<div class="workflow" style="margin-top:22px">
+<h3>Reference execution loop</h3>
+<div class="codeflow">
+User → Understand → Clarify if needed → Plan → Validate plan → Execute tool<br>
+&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+Persist checkpoint ← Verify result ← Observe execution ← Handle failure / retry<br>
+&nbsp;&nbsp;↓<br>
+Human approval when risk threshold is exceeded → Final response + audit event
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<footer><div class="container">AI Workflow Documentation · Challenges, controls and production patterns · Designed as a compact engineering reference.</div></footer>
+</body>
+</html>

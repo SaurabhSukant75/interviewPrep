@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java — Problem-Solving Playbook</title>
+<style>
+:root{
+  --bg:#0b0d11; --panel:#11151c; --panel2:#151a22; --text:#edf1f7;
+  --muted:#9aa5b5; --line:#27303d; --accent:#7dd3fc; --accent2:#a7f3d0;
+  --code:#0a0d12; --warn:#fcd34d; --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 80% -10%,#172231 0,transparent 32%),var(--bg);color:var(--text);font:15px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:20;background:rgba(11,13,17,.84);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{max-width:1180px;margin:auto;padding:14px 22px;display:flex;gap:20px;align-items:center}
+.logo{font-weight:800;letter-spacing:-.03em;font-size:18px}
+.logo span{color:var(--accent)}
+.navlinks{margin-left:auto;display:flex;gap:8px;overflow:auto}
+.navlinks a{padding:7px 10px;border-radius:9px;color:var(--muted);white-space:nowrap}
+.navlinks a:hover{background:#171d26;color:var(--text)}
+main{max-width:1180px;margin:auto;padding:56px 22px 90px}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:stretch;margin-bottom:48px}
+.hero-copy{padding:28px 0}
+.kicker{color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.13em;font-size:12px}
+h1{font-size:clamp(42px,7vw,76px);line-height:.98;letter-spacing:-.065em;margin:12px 0 22px}
+.lead{font-size:19px;color:#c5ceda;max-width:720px}
+.hero-card{background:linear-gradient(145deg,#151c25,#0f1319);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow);align-self:start}
+.tree{font:12.5px/1.52 ui-monospace,SFMono-Regular,Menlo,monospace;color:#cbd5e1;white-space:pre;overflow:auto;max-height:760px}
+.tree b{color:var(--accent)}
+.callout{margin:20px 0;padding:17px 19px;border:1px solid #30404d;border-left:3px solid var(--accent);background:#10161d;border-radius:12px;color:#d9e3ee}
+section{scroll-margin-top:80px;margin:58px 0}
+.section-head{display:flex;gap:16px;align-items:end;margin-bottom:20px}
+.num{font:700 13px ui-monospace,monospace;color:var(--accent);padding-bottom:8px}
+h2{font-size:30px;letter-spacing:-.035em;margin:0}
+.section-intro{color:var(--muted);margin:0 0 22px}
+.topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:15px;padding:21px;box-shadow:0 10px 30px rgba(0,0,0,.13)}
+.card h3{margin:0 0 7px;font-size:18px}
+.problem{font-weight:650;color:#fff;margin-bottom:12px}
+.problem:before{content:"Problem · ";color:var(--accent);font-weight:700}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-top:13px}
+.example{margin-top:13px;border:1px solid #242d38;background:var(--code);border-radius:10px;padding:13px;overflow:auto}
+pre{margin:0;font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#dce6f2}
+.pattern{color:var(--accent2);font-weight:700}
+.benefit{color:#cbd5e1}
+.boundary{color:#aeb8c7}
+.matrix{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.matrix th,.matrix td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.matrix th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.matrix tr:last-child td{border-bottom:0}
+.version-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.version{padding:24px;border:1px solid var(--line);background:linear-gradient(145deg,#151a21,#10141a);border-radius:16px}
+.version h3{margin:0 0 14px;font-size:22px}
+.badge{display:inline-block;padding:4px 8px;border-radius:7px;background:#1c2631;color:var(--accent);font:700 11px ui-monospace,monospace;margin-bottom:10px}
+ul{margin:8px 0 0;padding-left:20px;color:#c5ced9}
+li{margin:6px 0}
+.footer{margin-top:80px;padding:24px 0;border-top:1px solid var(--line);color:var(--muted);display:flex;justify-content:space-between;gap:20px}
+@media(max-width:800px){.hero,.topic-grid,.version-grid{grid-template-columns:1fr}.navlinks{display:none}main{padding-top:35px}h1{font-size:48px}}
+</style>
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="logo">JAVA<span>.</span>PLAYBOOK</div>
+    <div class="navlinks">
+      <a href="#object">01 Object</a><a href="#data">02 Data</a><a href="#failure">03 Failure</a>
+      <a href="#everyday">04 Everyday</a><a href="#concurrency">05 Concurrency</a>
+      <a href="#architecture">06 Architecture</a><a href="#integration">07 Integration</a>
+      <a href="#production">08 Production</a><a href="#versions">Java 17/21</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <div class="kicker">Problem → Capability → Pattern → Product</div>
+    <h1>Java as a<br>problem-solving toolkit.</h1>
+    <p class="lead">Learn Java by the engineering problems it solves — not by memorizing hundreds of classes. Each capability exists to make software safer, clearer, more maintainable and more productive.</p>
+    <div class="callout"><strong>Core idea:</strong> Before writing custom infrastructure, ask whether the Java language, standard library or JVM already provides the capability.</div>
+  </div>
+  <div class="hero-card">
+    <div class="tree"><b>JAVA</b>
+ │
+ ├── 01. Object & Type Design
+ │      ├── Classes
+ │      ├── Interfaces
+ │      ├── Encapsulation
+ │      ├── Polymorphism
+ │      ├── Records
+ │      ├── Enums
+ │      └── Sealed Types
+ │
+ ├── 02. Data & Transformation
+ │      ├── Collections
+ │      ├── Generics
+ │      ├── Optional
+ │      ├── Lambda
+ │      ├── Streams
+ │      └── Collectors
+ │
+ ├── 03. Failure & Resource Management
+ │      ├── Exceptions
+ │      ├── Custom Exceptions
+ │      ├── try-with-resources
+ │      └── AutoCloseable
+ │
+ ├── 04. Everyday Application APIs
+ │      ├── String
+ │      ├── Regex
+ │      ├── java.time
+ │      ├── Files / Path
+ │      └── I/O
+ │
+ ├── 05. Concurrency
+ │      ├── Threads
+ │      ├── Executors
+ │      ├── CompletableFuture
+ │      ├── Concurrent Collections
+ │      ├── Atomics
+ │      └── Synchronization
+ │
+ ├── 06. API & Architecture Design
+ │      ├── Interfaces
+ │      ├── Generics
+ │      ├── Records
+ │      ├── Sealed Classes
+ │      ├── Modules
+ │      └── Dependency Inversion
+ │
+ ├── 07. System Integration
+ │      ├── HTTP Client
+ │      ├── URI
+ │      ├── Networking
+ │      └── Security APIs
+ │
+ └── 08. Production Engineering
+        ├── Logging
+        ├── Diagnostics
+        ├── JVM
+        ├── Memory
+        ├── GC
+        ├── Performance
+        └── Monitoring hooks</div>
+  </div>
+</section>
+
+<section id="object">
+<div class="section-head"><div class="num">01</div><h2>Object & Type Design</h2></div>
+<p class="section-intro">Model business concepts and control how those concepts can change.</p>
+<div class="topic-grid">
+<div class="card"><h3>Classes</h3><div class="problem">Scattered data and behavior are hard to reason about.</div><div class="label">Java capability</div>Classes combine state and behavior around a meaningful concept.<div class="label">Pattern</div><span class="pattern">Encapsulation · Object Modeling</span><div class="example"><pre>class Order {
+  private final List<Item> items;
+
+  Money total() {
+    return items.stream()
+      .map(Item::price)
+      .reduce(Money.ZERO, Money::add);
+  }
+}</pre></div><div class="label">Better product</div><div class="benefit">Business rules stay close to the domain object and are easier to evolve.</div></div>
+<div class="card"><h3>Interfaces</h3><div class="problem">Concrete dependencies make change and testing expensive.</div><div class="label">Java capability</div>Define a contract without prescribing the implementation.<div class="example"><pre>interface PaymentGateway {
+  PaymentResult pay(Payment payment);
+}
+
+class CheckoutService {
+  private final PaymentGateway gateway;
+  CheckoutService(PaymentGateway gateway) {
+    this.gateway = gateway;
+  }
+}</pre></div><div class="label">Pattern</div><span class="pattern">Programming to an interface · Dependency Inversion</span><div class="label">Better product</div><div class="benefit">Payment providers, test doubles or infrastructure can change independently.</div></div>
+<div class="card"><h3>Encapsulation</h3><div class="problem">Any caller can put an object into an invalid state.</div><div class="label">Java capability</div>Private state plus controlled operations protect invariants.<div class="example"><pre>class Order {
+  private OrderStatus status;
+
+  void markPaid() {
+    if (status != OrderStatus.CREATED)
+      throw new IllegalStateException();
+    status = OrderStatus.PAID;
+  }
+}</pre></div><div class="label">Pattern</div><span class="pattern">Information Hiding</span></div>
+<div class="card"><h3>Polymorphism</h3><div class="problem">Growing if/else or switch logic becomes fragile.</div><div class="label">Java capability</div>Different implementations can satisfy the same contract.<div class="example"><pre>interface PaymentMethod {
+  PaymentResult pay(Money amount);
+}
+
+class CardPayment implements PaymentMethod { ... }
+class UpiPayment implements PaymentMethod { ... }</pre></div><div class="label">Pattern</div><span class="pattern">Strategy · Polymorphism</span></div>
+<div class="card"><h3>Records</h3><div class="problem">Data-only types require repetitive boilerplate.</div><div class="label">Java capability</div>Compact syntax for data-centric, shallowly immutable value carriers.<div class="example"><pre>record CreateOrderCommand(
+  Long customerId,
+  List&lt;Long&gt; productIds
+) {}</pre></div><div class="label">Useful for</div>DTOs, commands, responses, configuration/value objects.</div>
+<div class="card"><h3>Enums</h3><div class="problem">Strings and numbers create invalid states and typos.</div><div class="example"><pre>enum OrderStatus {
+  CREATED, PAID, CANCELLED
+}</pre></div><div class="label">Pattern</div><span class="pattern">Strongly Typed Closed Set</span><div class="label">Benefit</div>Compiler-assisted domain state instead of magic strings.</div>
+<div class="card"><h3>Sealed Types</h3><div class="problem">You need polymorphism but want a controlled set of valid alternatives.</div><div class="example"><pre>sealed interface PaymentResult
+  permits Success, Failed, Pending {}
+
+record Success(...) implements PaymentResult {}
+record Failed(...) implements PaymentResult {}</pre></div><div class="label">Pattern</div><span class="pattern">Controlled Polymorphism · State Modeling</span></div>
+</div></section>
+
+<section id="data">
+<div class="section-head"><div class="num">02</div><h2>Data & Transformation</h2></div>
+<p class="section-intro">Store, access, transform and aggregate data with type-safe standard abstractions.</p>
+<div class="topic-grid">
+<div class="card"><h3>Collections</h3><div class="problem">Every application needs groups of data with different access patterns.</div><div class="example"><pre>List&lt;Order&gt; orders;
+Set&lt;String&gt; uniqueIds;
+Map&lt;Long, Customer&gt; customers;
+Queue&lt;Job&gt; pendingJobs;</pre></div><div class="label">Pattern</div><span class="pattern">Choose the data structure by access/use pattern</span><div class="label">Rule</div>List = sequence · Set = uniqueness · Map = key/value · Queue = processing order.</div>
+<div class="card"><h3>Generics</h3><div class="problem">Casting and weak typing push errors to runtime.</div><div class="example"><pre>interface Repository&lt;T, ID&gt; {
+  T findById(ID id);
+}
+
+Repository&lt;Order, Long&gt; orders;</pre></div><div class="label">Pattern</div><span class="pattern">Compile-time Type Safety · Reusable Abstraction</span></div>
+<div class="card"><h3>Optional</h3><div class="problem">Missing values represented by null cause accidental failures.</div><div class="example"><pre>Optional&lt;Customer&gt; findCustomer(Long id);
+
+return repository.findById(id)
+    .map(Customer::name)
+    .orElse("Guest");</pre></div><div class="label">Pattern</div><span class="pattern">Explicit Absence</span><div class="label">Boundary</div>Best for expressing optional return values; not a universal replacement for null everywhere.</div>
+<div class="card"><h3>Lambda</h3><div class="problem">Small pieces of behavior require verbose code.</div><div class="example"><pre>orders.sort(
+  (a, b) -> a.total().compareTo(b.total())
+);</pre></div><div class="label">Pattern</div><span class="pattern">Behavior as a Value</span></div>
+<div class="card"><h3>Streams</h3><div class="problem">Loops mix filtering, transformation and aggregation with mutable control flow.</div><div class="example"><pre>var paidTotals = orders.stream()
+  .filter(Order::isPaid)
+  .map(Order::total)
+  .toList();</pre></div><div class="label">Pattern</div><span class="pattern">Pipeline · Declarative Transformation</span><div class="label">Benefit</div>Business data flows become easier to read and modify.</div>
+<div class="card"><h3>Collectors</h3><div class="problem">Transformed data still needs grouping, counting and aggregation.</div><div class="example"><pre>var byCustomer = orders.stream()
+  .collect(groupingBy(Order::customerId));</pre></div><div class="label">Pattern</div><span class="pattern">Aggregation · Grouping</span></div>
+</div></section>
+
+<section id="failure">
+<div class="section-head"><div class="num">03</div><h2>Failure & Resource Management</h2></div>
+<p class="section-intro">Make failure explicit and make resource lifecycle safe.</p>
+<div class="topic-grid">
+<div class="card"><h3>Exceptions</h3><div class="problem">Operations fail and callers need a structured failure path.</div><div class="example"><pre>try {
+  payment.charge();
+} catch (PaymentException e) {
+  recoverOrReport(e);
+}</pre></div><div class="label">Pattern</div><span class="pattern">Failure Propagation · Exception Boundary</span></div>
+<div class="card"><h3>Custom Exceptions</h3><div class="problem">Generic exceptions hide business meaning.</div><div class="example"><pre>throw new InsufficientBalanceException();</pre></div><div class="label">Pattern</div><span class="pattern">Domain-Specific Failure</span></div>
+<div class="card"><h3>try-with-resources</h3><div class="problem">Files, streams and connections must be closed even when work fails.</div><div class="example"><pre>try (var reader =
+     Files.newBufferedReader(path)) {
+  return reader.readLine();
+}</pre></div><div class="label">Pattern</div><span class="pattern">Deterministic Cleanup</span></div>
+<div class="card"><h3>AutoCloseable</h3><div class="problem">Custom resources also need a standard lifecycle contract.</div><div class="example"><pre>class Connection implements AutoCloseable {
+  public void close() { /* cleanup */ }
+}</pre></div><div class="label">Pattern</div><span class="pattern">Resource Lifecycle Contract</span></div>
+</div></section>
+
+<section id="everyday">
+<div class="section-head"><div class="num">04</div><h2>Everyday Application APIs</h2></div>
+<p class="section-intro">Use standard abstractions for text, time, files and data movement instead of reinventing them.</p>
+<div class="topic-grid">
+<div class="card"><h3>String</h3><div class="problem">Applications constantly manipulate text.</div><div class="example"><pre>var normalized =
+    email.trim().toLowerCase();</pre></div><div class="label">Key idea</div>Immutable text with standard search, comparison, replacement and formatting operations.</div>
+<div class="card"><h3>Regex</h3><div class="problem">Simple string operations are insufficient for pattern-based validation or extraction.</div><div class="example"><pre>Pattern.compile(
+  "[A-Z]{2}-\\d{6}"
+);</pre></div><div class="label">Pattern</div><span class="pattern">Pattern Matching</span></div>
+<div class="card"><h3>java.time</h3><div class="problem">Dates, durations and time zones are easy to model incorrectly.</div><div class="example"><pre>var expiry = Instant.now()
+    .plus(Duration.ofHours(24));</pre></div><div class="label">Pattern</div><span class="pattern">Explicit Time Modeling</span></div>
+<div class="card"><h3>Files / Path</h3><div class="problem">File handling becomes verbose and platform-dependent.</div><div class="example"><pre>Path path = Path.of("orders.json");
+
+if (Files.exists(path)) {
+  var json = Files.readString(path);
+}</pre></div><div class="label">Pattern</div><span class="pattern">Filesystem Abstraction</span></div>
+<div class="card"><h3>I/O</h3><div class="problem">Data must move safely between the application and external resources.</div><div class="example"><pre>Input
+  ↓
+Reader / Stream
+  ↓
+Application
+  ↓
+Writer / Stream
+  ↓
+Output</pre></div><div class="label">Pattern</div><span class="pattern">Stream-Based Data Flow</span></div>
+</div></section>
+
+<section id="concurrency">
+<div class="section-head"><div class="num">05</div><h2>Concurrency</h2></div>
+<p class="section-intro">Execute independent work efficiently while controlling shared state.</p>
+<div class="topic-grid">
+<div class="card"><h3>Threads</h3><div class="problem">Multiple independent execution paths are sometimes required.</div><div class="example"><pre>Thread.ofPlatform()
+  .start(() -> processJob());</pre></div><div class="label">Pattern</div><span class="pattern">Concurrent Execution</span><div class="label">Boundary</div>Prefer higher-level task abstractions when possible.</div>
+<div class="card"><h3>Executors</h3><div class="problem">Creating and managing threads manually doesn't scale well.</div><div class="example"><pre>ExecutorService pool =
+    Executors.newFixedThreadPool(8);
+
+pool.submit(() -> process(job));</pre></div><div class="label">Pattern</div><span class="pattern">Task-Based Concurrency</span></div>
+<div class="card"><h3>CompletableFuture</h3><div class="problem">Independent I/O work should not require blocking each step.</div><div class="example"><pre>getCustomer()
+  .thenCompose(this::getOrders)
+  .thenApply(this::buildSummary);</pre></div><div class="label">Pattern</div><span class="pattern">Async Composition · Pipeline</span></div>
+<div class="card"><h3>Concurrent Collections</h3><div class="problem">Multiple threads need safe access to shared collections.</div><div class="example"><pre>var cache = new ConcurrentHashMap&lt;Long, Customer&gt;();
+
+cache.computeIfAbsent(id, this::load);</pre></div><div class="label">Pattern</div><span class="pattern">Thread-Safe Shared Data</span></div>
+<div class="card"><h3>Atomics</h3><div class="problem">Small shared state updates need atomic operations.</div><div class="example"><pre>var requests = new AtomicLong();
+
+requests.incrementAndGet();</pre></div><div class="label">Pattern</div><span class="pattern">Lock-Free Atomic State</span></div>
+<div class="card"><h3>Synchronization</h3><div class="problem">Concurrent access to mutable state can create race conditions.</div><div class="example"><pre>synchronized void updateState() {
+  // protected critical section
+}</pre></div><div class="label">Pattern</div><span class="pattern">Mutual Exclusion · Coordination</span><div class="label">Design rule</div>Reduce shared mutable state before reaching for locks.</div>
+</div></section>
+
+<section id="architecture">
+<div class="section-head"><div class="num">06</div><h2>API & Architecture Design</h2></div>
+<p class="section-intro">Use Java's type system and boundaries to keep large applications changeable.</p>
+<div class="topic-grid">
+<div class="card"><h3>Interfaces as Ports</h3><div class="problem">Business rules become coupled to databases or external services.</div><div class="example"><pre>OrderService
+    ↓
+OrderRepository   ← interface
+    ↑
+JpaOrderRepository</pre></div><div class="label">Pattern</div><span class="pattern">Hexagonal / Clean Architecture</span></div>
+<div class="card"><h3>Generics as Contracts</h3><div class="problem">Reusable infrastructure needs flexibility without losing type safety.</div><div class="example"><pre>interface Repository&lt;T, ID&gt; {
+  Optional&lt;T&gt; findById(ID id);
+}</pre></div><div class="label">Pattern</div><span class="pattern">Type-Safe Generic Contract</span></div>
+<div class="card"><h3>Records as Data Contracts</h3><div class="problem">Layers need explicit data shapes without boilerplate.</div><div class="example"><pre>record CustomerResponse(
+  Long id,
+  String name
+) {}</pre></div><div class="label">Pattern</div><span class="pattern">Immutable Data Contract</span></div>
+<div class="card"><h3>Sealed Types as State Models</h3><div class="problem">Workflow states have a finite, meaningful set of alternatives.</div><div class="example"><pre>sealed interface OrderResult
+  permits Created, Rejected, Failed {}</pre></div><div class="label">Pattern</div><span class="pattern">Explicit State Machine</span></div>
+<div class="card"><h3>Modules</h3><div class="problem">Large applications develop uncontrolled package dependencies.</div><div class="example"><pre>module orders {
+  exports com.acme.orders.api;
+  // implementation remains hidden
+}</pre></div><div class="label">Pattern</div><span class="pattern">Explicit Module Boundary</span></div>
+<div class="card"><h3>Dependency Inversion</h3><div class="problem">High-level business logic depends on low-level infrastructure.</div><div class="example"><pre>Business
+   ↓
+Interface
+ ↑       ↑
+DB      HTTP</pre></div><div class="label">Pattern</div><span class="pattern">Dependency Inversion</span></div>
+</div></section>
+
+<section id="integration">
+<div class="section-head"><div class="num">07</div><h2>System Integration</h2></div>
+<p class="section-intro">Communicate with other systems using standard Java networking and security primitives.</p>
+<div class="topic-grid">
+<div class="card"><h3>HTTP Client</h3><div class="problem">Applications need HTTP communication without hand-built protocol plumbing.</div><div class="example"><pre>var request = HttpRequest.newBuilder(uri)
+    .GET()
+    .build();
+
+var response =
+    client.send(request,
+      HttpResponse.BodyHandlers.ofString());</pre></div><div class="label">Pattern</div><span class="pattern">Standard HTTP Client Abstraction</span></div>
+<div class="card"><h3>URI</h3><div class="problem">Raw string concatenation makes resource addresses fragile.</div><div class="example"><pre>URI uri = URI.create(
+  "https://api.example.com/orders/42"
+);</pre></div><div class="label">Pattern</div><span class="pattern">Structured Resource Addressing</span></div>
+<div class="card"><h3>Networking</h3><div class="problem">Specialized applications may need lower-level network communication.</div><div class="example"><pre>ServerSocket server =
+    new ServerSocket(8080);</pre></div><div class="label">Pattern</div><span class="pattern">Socket / Channel Communication</span><div class="label">Boundary</div>For normal REST business services, prefer higher-level HTTP APIs/frameworks.</div>
+<div class="card"><h3>Security APIs</h3><div class="problem">Applications need cryptographic primitives and secure protocols.</div><div class="example"><pre>MessageDigest digest =
+    MessageDigest.getInstance("SHA-256");
+
+byte[] result =
+    digest.digest(data);</pre></div><div class="label">Pattern</div><span class="pattern">Standard Security Primitive</span><div class="label">Rule</div>Use established cryptographic libraries and protocols; never invent cryptography.</div>
+</div></section>
+
+<section id="production">
+<div class="section-head"><div class="num">08</div><h2>Production Engineering</h2></div>
+<p class="section-intro">Move from “the code works” to “the running system is observable, diagnosable and efficient.”</p>
+<div class="topic-grid">
+<div class="card"><h3>Logging</h3><div class="problem">Production failures need evidence of what happened.</div><div class="example"><pre>logger.info("Order {} created", orderId);
+logger.error("Payment failed", exception);</pre></div><div class="label">Pattern</div><span class="pattern">Observable Execution</span></div>
+<div class="card"><h3>Diagnostics</h3><div class="problem">Logs alone may not explain runtime failures.</div><div class="example"><pre>Application
+ ├── stack traces
+ ├── thread state
+ ├── runtime info
+ └── JVM diagnostics</pre></div><div class="label">Pattern</div><span class="pattern">Runtime Inspection</span></div>
+<div class="card"><h3>JVM</h3><div class="problem">Developers should not manage machine-level execution directly.</div><div class="example"><pre>Java Source
+    ↓
+Bytecode
+    ↓
+JVM
+ ├─ execution
+ ├─ JIT
+ ├─ memory
+ └─ GC</pre></div><div class="label">Benefit</div><div class="benefit">A managed runtime provides portability, optimization and runtime services.</div></div>
+<div class="card"><h3>Memory</h3><div class="problem">Applications continuously create and reference objects.</div><div class="example"><pre>Application
+    ↓
+Objects
+    ↓
+Managed JVM Memory
+    ↓
+Garbage Collection</pre></div><div class="label">Pattern</div><span class="pattern">Automatic Memory Management</span></div>
+<div class="card"><h3>Garbage Collection</h3><div class="problem">Manually determining when every object is safe to release is error-prone.</div><div class="example"><pre>Object created
+     ↓
+No longer reachable
+     ↓
+GC identifies it
+     ↓
+Memory reclaimed</pre></div><div class="label">Boundary</div>GC doesn't mean unlimited memory; object retention and allocation patterns still matter.</div>
+<div class="card"><h3>Performance</h3><div class="problem">Correct software can still be too slow or resource-heavy.</div><div class="example"><pre>Measure
+  ↓
+Find bottleneck
+  ↓
+Understand cause
+  ↓
+Optimize
+  ↓
+Measure again</pre></div><div class="label">Pattern</div><span class="pattern">Evidence-Based Optimization</span></div>
+</div></section>
+
+<section id="versions">
+<div class="section-head"><div class="num">09</div><h2>Java 17 & Java 21</h2></div>
+<p class="section-intro">These LTS releases materially improve how modern Java applications model data, state and concurrency.</p>
+<div class="version-grid">
+<div class="version">
+<span class="badge">JAVA 17 · LTS</span>
+<h3>More expressive domain modeling</h3>
+<ul>
+<li><strong>Sealed classes/interfaces</strong> — explicitly control inheritance and model finite domain alternatives.</li>
+<li><strong>Records</strong> — concise immutable data carriers, excellent for DTOs, commands and value objects.</li>
+<li><strong>Pattern matching for instanceof</strong> — reduce casting boilerplate and make type checks clearer.</li>
+<li><strong>Text blocks</strong> — make multi-line JSON, SQL and templates much easier to read.</li>
+<li><strong>Switch expressions</strong> — make branching expression-oriented and safer.</li>
+<li><strong>Helpful NullPointerExceptions</strong> — better diagnosis when null-related failures occur.</li>
+</ul>
+<div class="callout">Java 17 is a strong baseline for modern enterprise Java because it combines LTS stability with significantly cleaner language constructs.</div>
+</div>
+<div class="version">
+<span class="badge">JAVA 21 · LTS</span>
+<h3>Modern concurrency + cleaner control flow</h3>
+<ul>
+<li><strong>Virtual threads</strong> — make high-concurrency, I/O-heavy applications much easier to scale using a thread-per-task programming model.</li>
+<li><strong>Record patterns</strong> — deconstruct records naturally during pattern matching.</li>
+<li><strong>Pattern matching for switch</strong> — express type/state branching more directly.</li>
+<li><strong>Sequenced collections</strong> — common operations for collections with a defined encounter sequence.</li>
+<li><strong>String templates</strong> were previewed in Java 21, not a permanent Java 21 feature; treat preview features separately from the stable baseline.</li>
+</ul>
+<div class="callout">Java 21 is especially important for server-side development because virtual threads can simplify scalable blocking-I/O concurrency.</div>
+</div>
+</div>
+
+<div class="callout" style="margin-top:20px">
+<strong>Practical upgrade lens:</strong> Java 17 improves <em>modeling and readability</em>; Java 21 adds a major step in <em>concurrency ergonomics</em>. For a new enterprise application, think in terms of the LTS baseline, runtime compatibility, framework support and operational constraints—not just language features.
+</div>
+</section>
+
+<section>
+<div class="section-head"><div class="num">10</div><h2>Java Capability Map</h2></div>
+<table class="matrix">
+<thead><tr><th>Developer problem</th><th>Java capability</th><th>Pattern</th><th>Product impact</th></tr></thead>
+<tbody>
+<tr><td>How do I model a concept?</td><td>Classes, records, enums, sealed types</td><td>Domain modeling</td><td>Clearer business rules</td></tr>
+<tr><td>How do I reduce coupling?</td><td>Interfaces, polymorphism</td><td>Dependency inversion</td><td>Safer change</td></tr>
+<tr><td>How do I make code type-safe?</td><td>Generics, enums, records</td><td>Compile-time correctness</td><td>Fewer runtime mistakes</td></tr>
+<tr><td>How do I transform data?</td><td>Lambda, Streams, Collectors</td><td>Functional pipeline</td><td>Readable business transformations</td></tr>
+<tr><td>How do I represent missing data?</td><td>Optional</td><td>Explicit absence</td><td>Clearer APIs</td></tr>
+<tr><td>How do I handle failure?</td><td>Exceptions</td><td>Failure boundaries</td><td>Predictable error handling</td></tr>
+<tr><td>How do I guarantee cleanup?</td><td>AutoCloseable, try-with-resources</td><td>Resource lifecycle</td><td>Fewer leaks</td></tr>
+<tr><td>How do I execute work concurrently?</td><td>Executors, CompletableFuture, virtual threads</td><td>Task-based concurrency</td><td>Better throughput and simpler async design</td></tr>
+<tr><td>How do I communicate with systems?</td><td>HTTP Client, URI, networking</td><td>Integration abstraction</td><td>Standard system connectivity</td></tr>
+<tr><td>How do I understand production?</td><td>JVM, diagnostics, logging, runtime APIs</td><td>Observability/diagnostics</td><td>Faster incident resolution</td></tr>
+</tbody>
+</table>
+</section>
+
+<div class="footer">
+<div><strong>Java Problem-Solving Playbook</strong><br>Problem → Capability → Pattern → Example → Better Product</div>
+<div>Java 17 / 21 · Modern Enterprise Baseline</div>
+</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microservices — Architecture & Engineering Guide</title>
+<style>
+:root{
+  --bg:#0b0e13;--panel:#121722;--panel2:#171d29;--text:#e8edf5;--muted:#9aa7b8;
+  --line:#273142;--accent:#79b8ff;--accent2:#9ae6c0;--warn:#f3c969;--danger:#ff8d8d;
+  --code:#0a0d12;--shadow:0 16px 45px rgba(0,0,0,.28)
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 0%,#162033 0,#0b0e13 32%);color:var(--text);font:15px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+.container{width:min(1220px,calc(100% - 36px));margin:auto}
+header{padding:54px 0 30px;border-bottom:1px solid var(--line)}
+.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-size:12px;font-weight:800}
+h1{font-size:clamp(38px,6vw,72px);line-height:1;margin:12px 0 18px}
+h2{font-size:31px;margin:0 0 18px} h3{font-size:20px;margin:24px 0 9px}
+p{color:#c7d0dc}.lead{font-size:19px;color:#b8c4d3;max-width:900px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.badge{border:1px solid var(--line);background:#101621;border-radius:999px;padding:5px 10px;color:#b9c7d7;font-size:12px}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:30px}
+nav{position:sticky;top:0;height:100vh;overflow:auto;padding:25px 0}
+nav strong{display:block;margin-bottom:12px;color:#fff}
+nav a{display:block;padding:7px 10px;border-left:1px solid var(--line);color:var(--muted);font-size:13px}
+nav a:hover{border-color:var(--accent);color:#fff;text-decoration:none}
+main{padding:34px 0 80px}
+section{scroll-margin-top:20px;margin-bottom:54px}
+.section-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:22px}
+.num{font:700 12px ui-monospace,monospace;color:var(--accent);border:1px solid #35506e;border-radius:8px;padding:6px 8px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:linear-gradient(180deg,var(--panel),#10151e);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.card h3{margin-top:0}.label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent2);font-weight:800}
+.callout{border-left:3px solid var(--accent);background:#101722;padding:15px 18px;border-radius:0 10px 10px 0;margin:18px 0}
+.warn{border-color:var(--warn)} .danger{border-color:var(--danger)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:17px;overflow:auto;color:#dbe6f4;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.diagram{background:#0d121a;border:1px solid var(--line);border-radius:14px;padding:20px;overflow:auto;margin:18px 0}
+.flow{display:flex;align-items:center;justify-content:center;gap:10px;min-width:650px}
+.node{background:#172131;border:1px solid #3a4b62;border-radius:10px;padding:12px 16px;text-align:center;white-space:nowrap}
+.arrow{color:var(--accent);font-size:20px}
+.matrix{width:100%;border-collapse:collapse;margin:16px 0}
+.matrix th,.matrix td{border:1px solid var(--line);padding:11px;text-align:left;vertical-align:top}
+.matrix th{background:#161d28;color:#dce7f5;font-size:12px;text-transform:uppercase;letter-spacing:.07em}
+.index{white-space:pre;overflow:auto;background:#0a0e14;border:1px solid var(--line);border-radius:14px;padding:22px;color:#cbd6e4;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+.kicker{color:var(--muted);font-size:13px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+footer{border-top:1px solid var(--line);padding:28px 0 55px;color:var(--muted)}
+@media(max-width:900px){.layout{display:block}nav{position:relative;height:auto;border-bottom:1px solid var(--line);padding:18px 0}.grid,.summary{grid-template-columns:1fr}nav a{display:inline-block;margin-right:4px}h2{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<div class="eyebrow">Architecture • Distributed Systems • Production Engineering</div>
+<h1>MICROSERVICES</h1>
+<p class="lead">A problem-first guide to designing, communicating, securing, testing, deploying and operating independently owned services — with the trade-offs made explicit.</p>
+<div class="badges"><span class="badge">Service Independence</span><span class="badge">Data Ownership</span><span class="badge">Resilience</span><span class="badge">Observability</span><span class="badge">Production</span></div>
+</header>
+
+<div class="layout">
+<nav>
+<strong>Learning Map</strong>
+<a href="#s01">01 Fundamentals</a><a href="#s02">02 Decomposition</a><a href="#s03">03 Communication</a><a href="#s04">04 Gateway</a><a href="#s05">05 Discovery</a><a href="#s06">06 Data</a><a href="#s07">07 Transactions</a><a href="#s08">08 Messaging</a><a href="#s09">09 Resilience</a><a href="#s10">10 Contracts</a><a href="#s11">11 Security</a><a href="#s12">12 Observability</a><a href="#s13">13 Testing</a><a href="#s14">14 Deployment</a><a href="#s15">15 Kubernetes</a><a href="#s16">16 Configuration</a><a href="#s17">17 Performance</a><a href="#s18">18 Workflows</a><a href="#s19">19 Governance</a><a href="#s20">20 Production</a><a href="#s21">21 Patterns</a>
+</nav>
+
+<main>
+<section id="index">
+<h2>Complete Learning Index</h2>
+<div class="index">MICROSERVICES
+ │
+ ├── 01. Microservice Fundamentals
+ │      ├── What Is a Microservice
+ │      ├── Monolith vs Microservices
+ │      ├── Service Boundaries
+ │      ├── Bounded Context
+ │      ├── Business Capability
+ │      ├── Service Ownership
+ │      └── When Not to Use Microservices
+ │
+ ├── 02. Service Decomposition & Architecture
+ │      ├── Decomposition Strategies
+ │      ├── Domain-Driven Design
+ │      ├── Bounded Contexts
+ │      ├── High Cohesion
+ │      ├── Low Coupling
+ │      ├── Conway's Law
+ │      ├── Shared Libraries vs Independent Services
+ │      └── Modular Monolith as Alternative
+ │
+ ├── 03. Service Communication
+ │      ├── Synchronous Communication
+ │      ├── Asynchronous Communication
+ │      ├── REST APIs
+ │      ├── gRPC
+ │      ├── Messaging
+ │      ├── API Composition
+ │      ├── Service-to-Service Calls
+ │      └── Communication Trade-offs
+ │
+ ├── 04. API Gateway & Edge Architecture
+ │      ├── API Gateway
+ │      ├── Routing
+ │      ├── Authentication at Edge
+ │      ├── Rate Limiting
+ │      ├── Request Transformation
+ │      ├── API Composition
+ │      ├── Backend for Frontend
+ │      └── Gateway vs Load Balancer
+ │
+ ├── 05. Service Discovery & Networking
+ │      ├── Service Discovery
+ │      ├── Client-Side Discovery
+ │      ├── Server-Side Discovery
+ │      ├── DNS-Based Discovery
+ │      ├── Load Balancing
+ │      ├── Health-Based Routing
+ │      ├── Service Mesh
+ │      └── Network Resilience
+ │
+ ├── 06. Data Ownership & Persistence
+ │      ├── Database per Service
+ │      ├── Data Ownership
+ │      ├── Shared Database Problems
+ │      ├── Polyglot Persistence
+ │      ├── Data Synchronization
+ │      ├── Read Models
+ │      ├── CQRS
+ │      └── Data Migration
+ │
+ ├── 07. Distributed Transactions & Consistency
+ │      ├── Local Transactions
+ │      ├── Distributed Transaction Problem
+ │      ├── Eventual Consistency
+ │      ├── Saga Pattern
+ │      ├── Choreography
+ │      ├── Orchestration
+ │      ├── Compensation
+ │      └── Consistency Trade-offs
+ │
+ ├── 08. Messaging & Event-Driven Architecture
+ │      ├── Message Brokers
+ │      ├── Events vs Commands
+ │      ├── Producers
+ │      ├── Consumers
+ │      ├── Topics / Queues
+ │      ├── Consumer Groups
+ │      ├── Dead Letter Queues
+ │      └── Event-Driven Workflows
+ │
+ ├── 09. Reliability & Resilience
+ │      ├── Timeout
+ │      ├── Retry
+ │      ├── Backoff
+ │      ├── Jitter
+ │      ├── Circuit Breaker
+ │      ├── Bulkhead
+ │      ├── Rate Limiting
+ │      └── Failure Isolation
+ │
+ ├── 10. API Contracts & Versioning
+ │      ├── API Contracts
+ │      ├── Schema Evolution
+ │      ├── API Versioning
+ │      ├── Backward Compatibility
+ │      ├── Consumer-Driven Contracts
+ │      ├── Contract Testing
+ │      ├── OpenAPI
+ │      └── Compatibility Strategy
+ │
+ ├── 11. Security
+ │      ├── Authentication
+ │      ├── Authorization
+ │      ├── OAuth2
+ │      ├── JWT
+ │      ├── Service-to-Service Security
+ │      ├── mTLS
+ │      ├── Secrets Management
+ │      └── Zero Trust
+ │
+ ├── 12. Observability
+ │      ├── Centralized Logging
+ │      ├── Metrics
+ │      ├── Distributed Tracing
+ │      ├── Correlation IDs
+ │      ├── Health Checks
+ │      ├── Readiness / Liveness
+ │      ├── Service Dashboards
+ │      └── Alerting
+ │
+ ├── 13. Testing Strategy
+ │      ├── Unit Testing
+ │      ├── Component Testing
+ │      ├── Integration Testing
+ │      ├── Contract Testing
+ │      ├── End-to-End Testing
+ │      ├── Consumer Testing
+ │      ├── Testcontainers
+ │      └── Test Pyramid
+ │
+ ├── 14. Deployment & Release
+ │      ├── Independent Deployment
+ │      ├── CI/CD
+ │      ├── Rolling Deployment
+ │      ├── Blue-Green Deployment
+ │      ├── Canary Release
+ │      ├── Feature Flags
+ │      ├── Database Expand / Contract
+ │      └── Zero-Downtime Deployment
+ │
+ ├── 15. Containers & Kubernetes
+ │      ├── Containers
+ │      ├── Docker Images
+ │      ├── Kubernetes Pods
+ │      ├── Deployments
+ │      ├── Services
+ │      ├── ConfigMaps
+ │      ├── Secrets
+ │      └── Autoscaling
+ │
+ ├── 16. Configuration & Environment Management
+ │      ├── Externalized Configuration
+ │      ├── Environment Variables
+ │      ├── Configuration Server
+ │      ├── Secrets
+ │      ├── Environment Profiles
+ │      ├── Dynamic Configuration
+ │      └── Configuration Versioning
+ │
+ ├── 17. Performance & Scalability
+ │      ├── Horizontal Scaling
+ │      ├── Vertical Scaling
+ │      ├── Load Balancing
+ │      ├── Caching
+ │      ├── Async Processing
+ │      ├── Connection Pooling
+ │      ├── Backpressure
+ │      └── Capacity Planning
+ │
+ ├── 18. Distributed Workflow & Business Processes
+ │      ├── Workflow Orchestration
+ │      ├── Saga Workflows
+ │      ├── Long-Running Processes
+ │      ├── Compensation
+ │      ├── State Machines
+ │      ├── Idempotency
+ │      ├── Exactly-Once vs At-Least-Once
+ │      └── Workflow Recovery
+ │
+ ├── 19. Maintainability & Governance
+ │      ├── Service Ownership
+ │      ├── Coding Standards
+ │      ├── API Standards
+ │      ├── Shared Platform Capabilities
+ │      ├── Dependency Management
+ │      ├── Technical Governance
+ │      ├── Architecture Decision Records
+ │      └── Preventing Distributed Monoliths
+ │
+ ├── 20. Production Engineering
+ │      ├── SLO / SLA / SLI
+ │      ├── Capacity Planning
+ │      ├── Disaster Recovery
+ │      ├── Fault Isolation
+ │      ├── Graceful Shutdown
+ │      ├── Autoscaling
+ │      ├── Incident Management
+ │      └── Operational Readiness
+ │
+ └── 21. Microservices Architecture Patterns
+        ├── API Gateway Pattern
+        ├── BFF Pattern
+        ├── Database per Service
+        ├── Saga Pattern
+        ├── Outbox Pattern
+        ├── CQRS
+        ├── Event Sourcing
+        ├── Circuit Breaker
+        ├── Bulkhead
+        ├── Strangler Fig Pattern
+        └── Sidecar / Service Mesh</div>
+</section>
+
+<section>
+<div class="callout"><b>Core mental model:</b> Microservices are not primarily “small applications.” They are independently owned, deployable business capabilities with explicit boundaries, contracts and operational responsibility.</div>
+</section>
+
+<section id="s01"><div class="section-head"><span class="num">01</span><div><h2>Microservice Fundamentals</h2><p class="kicker">Start with the boundary, not the technology.</p></div></div>
+<div class="grid">
+<div class="card"><div class="label">Problem</div><h3>One application becomes one change bottleneck</h3><p>Large codebases accumulate dependencies between teams, releases and business capabilities. A small change can require a large regression cycle.</p></div>
+<div class="card"><div class="label">Solution</div><h3>Independent business capability</h3><p>A microservice owns a cohesive capability, its behavior and normally its data. It can be changed and deployed with minimal coordination.</p></div>
+<div class="card"><div class="label">Service boundary</div><h3>Bounded context + ownership</h3><p>A good boundary follows business language, data ownership, change patterns and team responsibility—not merely technical layers or database tables.</p></div>
+<div class="card"><div class="label">When not to use</div><h3>Complexity must earn its keep</h3><p>For a small team, early product, simple domain or tightly coupled transaction model, a modular monolith can be the better architecture.</p></div>
+</div>
+<div class="diagram"><div class="flow"><div class="node">Customer</div><div class="arrow">→</div><div class="node">Order</div><div class="arrow">→</div><div class="node">Payment</div><div class="arrow">→</div><div class="node">Inventory</div></div></div>
+</section>
+
+<section id="s02"><div class="section-head"><span class="num">02</span><div><h2>Service Decomposition & Architecture</h2><p class="kicker">The hardest microservices decision is where to draw the lines.</p></div></div>
+<div class="grid">
+<div class="card"><div class="label">Decomposition</div><h3>Business capability beats technical layer</h3><p>“Order service” usually has stronger ownership boundaries than “Controller service” or “Database service.” Decompose around business responsibilities.</p></div>
+<div class="card"><div class="label">DDD</div><h3>Bounded contexts expose different models</h3><p>The word “customer” can mean different things in sales, billing and shipping. Each context can own the model that fits its responsibility.</p></div>
+<div class="card"><div class="label">Cohesion</div><h3>Keep related change together</h3><p>High cohesion means a service contains behavior that changes for related reasons. Low cohesion produces coordination and deployment noise.</p></div>
+<div class="card"><div class="label">Conway's Law</div><h3>Architecture follows communication</h3><p>If teams are split around services, ownership becomes clearer. If every decision requires every team, the architecture tends to become coupled.</p></div>
+</div>
+<div class="callout"><b>Rule:</b> A service should have a reason to exist beyond “we wanted another deployment.” Its boundary should protect business ownership and reduce accidental coordination.</div>
+</section>
+
+<section id="s03"><div class="section-head"><span class="num">03</span><div><h2>Service Communication</h2><p class="kicker">Every remote call introduces latency, failure and coupling.</p></div></div>
+<div class="grid">
+<div class="card"><div class="label">Synchronous</div><h3>Ask and wait</h3><p>REST or gRPC is useful when the caller needs an immediate answer. It is easy to reason about but propagates latency and dependency failures.</p></div>
+<div class="card"><div class="label">Asynchronous</div><h3>Publish work or facts</h3><p>Messaging decouples timing. The producer can continue while consumers process later, but the system must handle duplicates, ordering and eventual consistency.</p></div>
+<div class="card"><div class="label">API composition</div><h3>Aggregate at a deliberate boundary</h3><p>A gateway or BFF can combine service data for clients. Avoid making clients understand internal service topology.</p></div>
+<div class="card"><div class="label">Trade-off</div><h3>Fewer calls usually means fewer failure edges</h3><p>Chatty service-to-service calls create latency chains. Prefer cohesive APIs and events where immediate request/response is not required.</p></div>
+</div>
+<pre><code>GET /orders/42
+        |
+        +--> Order Service
+                 |
+                 +--> Payment Service
+                 +--> Inventory Service
+
+Risk: latency and failure can propagate across the chain.</code></pre>
+</section>
+
+<section id="s04"><div class="section-head"><span class="num">04</span><div><h2>API Gateway & Edge Architecture</h2><p class="kicker">Hide internal topology and enforce cross-cutting edge policies.</p></div></div>
+<div class="diagram"><div class="flow"><div class="node">Web / Mobile</div><div class="arrow">→</div><div class="node">API Gateway / BFF</div><div class="arrow">→</div><div class="node">Order</div><div class="node">Catalog</div><div class="node">Customer</div></div></div>
+<div class="grid">
+<div class="card"><h3>Gateway</h3><p>Routes requests, applies edge policies, can terminate authentication and sometimes aggregates responses.</p></div>
+<div class="card"><h3>BFF</h3><p>Tailors an API to a specific client experience. A mobile application may need a different response shape from a web application.</p></div>
+<div class="card"><h3>Gateway ≠ Load Balancer</h3><p>A load balancer distributes traffic. A gateway understands API concerns such as routes, policies, authentication and transformations.</p></div>
+<div class="card"><h3>Keep business rules out</h3><p>Do not turn the gateway into a second business application. Core business decisions belong to the owning service.</p></div>
+</div>
+</section>
+
+<section id="s05"><div class="section-head"><span class="num">05</span><div><h2>Service Discovery & Networking</h2><p class="kicker">Instances move; clients need a stable way to find them.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Discovery</h3><p>Service discovery maps a logical service name to currently available instances. DNS, registries and platform-native discovery solve this in different ways.</p></div>
+<div class="card"><h3>Client vs server discovery</h3><p>Client-side discovery chooses an instance directly. Server-side discovery delegates selection to a router or load balancer.</p></div>
+<div class="card"><h3>Health-based routing</h3><p>Traffic should avoid instances that are alive at the process level but unable to serve meaningful requests.</p></div>
+<div class="card"><h3>Service mesh</h3><p>A mesh can move networking concerns such as mTLS, traffic policy and telemetry out of application code, at the cost of platform complexity.</p></div>
+</div>
+</section>
+
+<section id="s06"><div class="section-head"><span class="num">06</span><div><h2>Data Ownership & Persistence</h2><p class="kicker">Service independence is impossible if everyone owns everyone else's tables.</p></div></div>
+<div class="diagram"><div class="flow"><div class="node">Order</div><div class="arrow">→</div><div class="node">Order DB</div><div class="arrow">│</div><div class="node">Payment DB</div><div class="arrow">│</div><div class="node">Inventory DB</div></div></div>
+<div class="grid">
+<div class="card"><h3>Database per service</h3><p>The service owns its schema and persistence decisions. Other services consume contracts or events rather than directly querying its tables.</p></div>
+<div class="card"><h3>Shared database problem</h3><p>A schema change can require multiple teams to coordinate. Direct cross-service SQL creates hidden coupling and weakens deployment independence.</p></div>
+<div class="card"><h3>Polyglot persistence</h3><p>Different capabilities may choose different stores when justified by workload, consistency and operational expertise. Do not introduce technologies merely for novelty.</p></div>
+<div class="card"><h3>CQRS & read models</h3><p>When read needs differ from write ownership, build a read model from owned data/events rather than creating shared-table dependencies.</p></div>
+</div>
+</section>
+
+<section id="s07"><div class="section-head"><span class="num">07</span><div><h2>Distributed Transactions & Consistency</h2><p class="kicker">A local transaction boundary stops at the service boundary.</p></div></div>
+<pre><code>Order Created
+    |
+    v
+Payment ──success──> Inventory
+    |                   |
+    X failure           X failure
+    |                   |
+ compensate          compensate / retry
+
+Saga = sequence of local transactions + compensating actions.</code></pre>
+<div class="grid">
+<div class="card"><h3>Local transaction</h3><p>A database transaction protects atomic changes inside one transactional resource. It does not make several independent databases one transaction.</p></div>
+<div class="card"><h3>Eventual consistency</h3><p>Different services may temporarily disagree while events propagate. The architecture must define acceptable states and recovery behavior.</p></div>
+<div class="card"><h3>Choreography</h3><p>Services react to events without a central coordinator. It can be elegant for simple flows but becomes difficult to visualize as workflow dependencies grow.</p></div>
+<div class="card"><h3>Orchestration</h3><p>A workflow coordinator explicitly drives steps and compensation. It adds a coordinator but can make complex business processes easier to reason about.</p></div>
+</div>
+</section>
+
+<section id="s08"><div class="section-head"><span class="num">08</span><div><h2>Messaging & Event-Driven Architecture</h2><p class="kicker">Decouple time and ownership without pretending delivery is magic.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Event vs command</h3><p>An event describes something that happened: <code>OrderPlaced</code>. A command requests an action: <code>ReserveInventory</code>.</p></div>
+<div class="card"><h3>Producer</h3><p>Publishes a message without needing to know every downstream consumer. This reduces direct temporal coupling.</p></div>
+<div class="card"><h3>Consumer groups</h3><p>Consumers can share work across instances. The exact delivery and ordering semantics depend on the broker and design.</p></div>
+<div class="card"><h3>DLQ</h3><p>A dead-letter destination isolates messages that repeatedly fail processing so they can be inspected or repaired without blocking normal traffic.</p></div>
+</div>
+<pre><code>Order Service
+     |
+     | OrderPlaced
+     v
++------------ Message Broker ------------+
+|                                        |
+v                                        v
+Inventory Consumer                  Notification Consumer</code></pre>
+</section>
+
+<section id="s09"><div class="section-head"><span class="num">09</span><div><h2>Reliability & Resilience</h2><p class="kicker">Distributed systems fail partially, slowly and unpredictably.</p></div></div>
+<table class="matrix"><tr><th>Control</th><th>Problem</th><th>Key caution</th></tr>
+<tr><td>Timeout</td><td>Dependency never responds</td><td>Choose a budget that fits the user/request SLO.</td></tr>
+<tr><td>Retry</td><td>Transient failure</td><td>Retry only safe/idempotent operations; retries can amplify outages.</td></tr>
+<tr><td>Backoff + jitter</td><td>Many clients retry together</td><td>Spread retries over time.</td></tr>
+<tr><td>Circuit breaker</td><td>Repeated dependency failure</td><td>Fail fast while the dependency is unhealthy.</td></tr>
+<tr><td>Bulkhead</td><td>One dependency consumes all resources</td><td>Isolate pools, queues or concurrency.</td></tr>
+<tr><td>Rate limit</td><td>Traffic overload</td><td>Protect capacity and make overload explicit.</td></tr></table>
+<div class="callout danger"><b>Classic failure:</b> A slow downstream service causes request threads to pile up → upstream latency rises → retries increase traffic → the whole system collapses. Resilience controls must be designed together.</div>
+</section>
+
+<section id="s10"><div class="section-head"><span class="num">10</span><div><h2>API Contracts & Versioning</h2><p class="kicker">Independent deployment requires compatibility discipline.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Contract</h3><p>The API contract defines what consumers can rely on: shape, semantics, errors and compatibility expectations.</p></div>
+<div class="card"><h3>Schema evolution</h3><p>Prefer additive changes. Add optional fields before consumers depend on them; avoid removing or changing the meaning of fields abruptly.</p></div>
+<div class="card"><h3>Consumer-driven contracts</h3><p>Consumers express the interactions they depend on. Provider changes can then be checked before deployment.</p></div>
+<div class="card"><h3>Versioning</h3><p>Version only when compatibility cannot be preserved. A version number is not a substitute for a disciplined evolution strategy.</p></div>
+</div>
+<pre><code>// Safer evolution
+{
+  "id": "42",
+  "status": "PAID",
+  "currency": "INR"   // additive field
+}
+
+// Risky evolution
+"status": "PAID"     // changes meaning or removes old states</code></pre>
+</section>
+
+<section id="s11"><div class="section-head"><span class="num">11</span><div><h2>Security</h2><p class="kicker">Every service is a security boundary, not just an internal endpoint.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Authentication</h3><p>Establish who or what is calling. OAuth2 and token-based resource-server patterns are common at API boundaries.</p></div>
+<div class="card"><h3>Authorization</h3><p>Authentication answers “who?” Authorization answers “what may this identity do?” Keep business authorization close to the business resource.</p></div>
+<div class="card"><h3>Service-to-service</h3><p>Internal traffic still needs identity, authorization and encryption. mTLS can provide workload identity and transport encryption.</p></div>
+<div class="card"><h3>Zero trust</h3><p>Do not assume that network location makes a request trustworthy. Verify identity and policy at meaningful boundaries.</p></div>
+</div>
+</section>
+
+<section id="s12"><div class="section-head"><span class="num">12</span><div><h2>Observability</h2><p class="kicker">If a user request crosses ten services, one log file is not enough.</p></div></div>
+<div class="diagram"><div class="flow"><div class="node">Request</div><div class="arrow">→</div><div class="node">Trace ID</div><div class="arrow">→</div><div class="node">Logs</div><div class="arrow">+</div><div class="node">Metrics</div><div class="arrow">+</div><div class="node">Traces</div></div></div>
+<div class="grid">
+<div class="card"><h3>Logs</h3><p>Explain discrete events. Include structured fields and correlation identifiers rather than relying on free-form text.</p></div>
+<div class="card"><h3>Metrics</h3><p>Reveal aggregate behavior: request rate, error rate, latency, saturation and business signals.</p></div>
+<div class="card"><h3>Tracing</h3><p>Connect spans across service boundaries so engineers can see where latency and failures originate.</p></div>
+<div class="card"><h3>Health</h3><p>Liveness answers whether the process is functioning. Readiness answers whether it should receive traffic.</p></div>
+</div>
+</section>
+
+<section id="s13"><div class="section-head"><span class="num">13</span><div><h2>Testing Strategy</h2><p class="kicker">The more distributed the architecture, the more expensive full-system tests become.</p></div></div>
+<table class="matrix"><tr><th>Test</th><th>Best question</th></tr>
+<tr><td>Unit</td><td>Does this component's logic behave correctly?</td></tr>
+<tr><td>Component</td><td>Does the service behave correctly behind its boundary?</td></tr>
+<tr><td>Integration</td><td>Does it work with real infrastructure such as a database or broker?</td></tr>
+<tr><td>Contract</td><td>Can independently deployed consumers and providers still interact?</td></tr>
+<tr><td>E2E</td><td>Does the critical business journey work across the deployed system?</td></tr></table>
+<p>Use Testcontainers or equivalent real infrastructure for high-value integration tests. Keep E2E coverage focused on critical journeys rather than using it as the only safety net.</p>
+</section>
+
+<section id="s14"><div class="section-head"><span class="num">14</span><div><h2>Deployment & Release</h2><p class="kicker">Deployment independence is one of the major reasons to accept microservice complexity.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Independent deployment</h3><p>A service should be releasable without coordinating every other service. Stable contracts and backward-compatible data changes make this possible.</p></div>
+<div class="card"><h3>Rolling</h3><p>Gradually replace instances. Simple and resource-efficient, but old and new versions coexist temporarily.</p></div>
+<div class="card"><h3>Blue-green</h3><p>Maintain two environments and shift traffic. Fast rollback is attractive, but capacity cost can be higher.</p></div>
+<div class="card"><h3>Canary</h3><p>Expose a small percentage of traffic to the new version and observe behavior before broader rollout.</p></div>
+</div>
+<div class="callout"><b>Database rule:</b> Use expand → migrate → contract. Deploy schema changes that support both old and new application versions before removing old structures.</div>
+</section>
+
+<section id="s15"><div class="section-head"><span class="num">15</span><div><h2>Containers & Kubernetes</h2><p class="kicker">Packaging solves consistency; orchestration solves lifecycle and placement.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Container</h3><p>Packages the application and its runtime assumptions into a repeatable artifact.</p></div>
+<div class="card"><h3>Pod</h3><p>Kubernetes schedules containers in pods. Applications should be designed to tolerate instance replacement.</p></div>
+<div class="card"><h3>Service</h3><p>Provides a stable networking abstraction over changing pod instances.</p></div>
+<div class="card"><h3>Autoscaling</h3><p>Adjusts capacity according to workload signals. Scaling policy must account for startup time, bottlenecks and downstream capacity.</p></div>
+</div>
+</section>
+
+<section id="s16"><div class="section-head"><span class="num">16</span><div><h2>Configuration & Environment Management</h2><p class="kicker">Deploy the same artifact; vary environment-specific configuration.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Externalized configuration</h3><p>Keep deployment configuration outside the application binary. This supports environment-specific behavior without rebuilding the artifact.</p></div>
+<div class="card"><h3>Secrets</h3><p>Credentials and keys require dedicated secret handling, access control, rotation and auditability. They should not live in source code.</p></div>
+<div class="card"><h3>Profiles</h3><p>Profiles can express environment differences, but avoid turning them into a maze of divergent application behavior.</p></div>
+<div class="card"><h3>Dynamic configuration</h3><p>Useful for selected operational policies, but changes need validation, ownership, auditability and safe rollback.</p></div>
+</div>
+</section>
+
+<section id="s17"><div class="section-head"><span class="num">17</span><div><h2>Performance & Scalability</h2><p class="kicker">Scale the bottleneck, not the diagram.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Horizontal scaling</h3><p>Add instances when workload can be partitioned. Stateless services are generally easier to scale horizontally.</p></div>
+<div class="card"><h3>Caching</h3><p>Reduce repeated expensive work, but define freshness, invalidation and ownership explicitly.</p></div>
+<div class="card"><h3>Async processing</h3><p>Move non-critical or long-running work off synchronous request paths to protect latency and throughput.</p></div>
+<div class="card"><h3>Backpressure</h3><p>Prevent producers from overwhelming consumers. Queue depth, concurrency and admission control become capacity signals.</p></div>
+</div>
+<pre><code>Capacity model:
+Incoming rate → Queue → Workers → Database
+
+If Database capacity is the bottleneck,
+adding more Workers can make the system worse.</code></pre>
+</section>
+
+<section id="s18"><div class="section-head"><span class="num">18</span><div><h2>Distributed Workflow & Business Processes</h2><p class="kicker">Long-running workflows need explicit state and recovery.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Workflow orchestration</h3><p>Coordinates multiple services through explicit steps, timeouts, retries and compensation.</p></div>
+<div class="card"><h3>State machines</h3><p>Make valid business states and transitions explicit. This prevents “hidden workflow state” from being scattered across services.</p></div>
+<div class="card"><h3>Idempotency</h3><p>Repeated delivery should not create repeated business effects. Use stable operation IDs or idempotency keys where appropriate.</p></div>
+<div class="card"><h3>Recovery</h3><p>A workflow is incomplete until failure, restart, timeout and partial-success behavior are defined.</p></div>
+</div>
+</section>
+
+<section id="s19"><div class="section-head"><span class="num">19</span><div><h2>Maintainability & Governance</h2><p class="kicker">Microservices amplify both good engineering and bad engineering.</p></div></div>
+<div class="grid">
+<div class="card"><h3>Ownership</h3><p>Every service needs a clear team responsible for code, API, data, reliability and operational health.</p></div>
+<div class="card"><h3>Platform capabilities</h3><p>Centralize boring infrastructure capabilities such as deployment, telemetry, security defaults and service templates without centralizing business ownership.</p></div>
+<div class="card"><h3>ADRs</h3><p>Architecture Decision Records preserve why important boundaries, technologies and trade-offs were chosen.</p></div>
+<div class="card"><h3>Prevent distributed monoliths</h3><p>Watch for synchronized releases, shared databases, chatty calls and shared domain models. These are signs that boundaries are not providing real independence.</p></div>
+</div>
+</section>
+
+<section id="s20"><div class="section-head"><span class="num">20</span><div><h2>Production Engineering</h2><p class="kicker">A service is not production-ready because it starts successfully.</p></div></div>
+<table class="matrix"><tr><th>Concept</th><th>Question</th></tr>
+<tr><td>SLI</td><td>What measurable signal represents user-visible reliability?</td></tr>
+<tr><td>SLO</td><td>What reliability target are we committing to?</td></tr>
+<tr><td>SLA</td><td>What external contractual commitment exists?</td></tr>
+<tr><td>DR</td><td>How do we recover from infrastructure or regional loss?</td></tr>
+<tr><td>Graceful shutdown</td><td>How does the service stop without dropping in-flight work?</td></tr>
+<tr><td>Operational readiness</td><td>Can the team detect, diagnose, mitigate and recover from failures?</td></tr></table>
+</section>
+
+<section id="s21"><div class="section-head"><span class="num">21</span><div><h2>Microservices Architecture Patterns</h2><p class="kicker">Patterns are tools for recurring problems, not mandatory architecture.</p></div></div>
+<div class="grid">
+<div class="card"><h3>API Gateway / BFF</h3><p>Centralize edge concerns and tailor client-facing APIs while keeping business ownership in services.</p></div>
+<div class="card"><h3>Database per Service</h3><p>Protect data ownership and independent evolution.</p></div>
+<div class="card"><h3>Saga</h3><p>Coordinate distributed business transactions through local transactions and compensation.</p></div>
+<div class="card"><h3>Outbox</h3><p>Persist business state and an event record atomically, then publish reliably to reduce database/event dual-write problems.</p></div>
+<div class="card"><h3>CQRS</h3><p>Separate write ownership from optimized read models when the domain justifies the added complexity.</p></div>
+<div class="card"><h3>Event Sourcing</h3><p>Store state as a sequence of domain events. Powerful for audit/history-driven domains, but operationally and conceptually heavier.</p></div>
+<div class="card"><h3>Circuit Breaker / Bulkhead</h3><p>Limit the blast radius of dependency failure and resource exhaustion.</p></div>
+<div class="card"><h3>Strangler Fig</h3><p>Incrementally replace or extract capabilities from a legacy system instead of performing a risky big-bang rewrite.</p></div>
+<div class="card"><h3>Sidecar / Service Mesh</h3><p>Move selected cross-cutting networking capabilities out of service code. Useful at scale, but introduces another operational layer.</p></div>
+</div>
+</section>
+
+<section>
+<h2>Decision Matrices</h2>
+<table class="matrix">
+<tr><th>Decision</th><th>Prefer A when...</th><th>Prefer B when...</th></tr>
+<tr><td>Monolith vs Microservices</td><td>Domain/team is small, transactions are tightly coupled, speed matters.</td><td>Independent ownership, scaling and deployment are valuable enough to justify distributed complexity.</td></tr>
+<tr><td>REST vs gRPC vs Messaging</td><td>REST: broad interoperability and resource-oriented APIs.</td><td>gRPC: efficient internal RPC; Messaging: temporal decoupling and event workflows.</td></tr>
+<tr><td>Shared DB vs DB per service</td><td>Shared DB: transitional/modular architecture where ownership is intentionally shared.</td><td>DB per service: strong service ownership and independent evolution.</td></tr>
+<tr><td>Choreography vs Orchestration</td><td>Choreography: simple event reactions.</td><td>Orchestration: complex workflows needing explicit state and control.</td></tr>
+<tr><td>Rolling vs Blue-Green vs Canary</td><td>Rolling: normal low-cost rollout.</td><td>Blue-green: fast switching; Canary: progressive risk exposure.</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Common Anti-Patterns</h2>
+<div class="grid">
+<div class="card"><h3>Distributed Monolith</h3><p><b>Symptoms:</b> synchronized releases, shared schemas, long call chains. <b>Fix:</b> restore ownership and reduce coupling.</p></div>
+<div class="card"><h3>Nano-services</h3><p><b>Symptoms:</b> trivial services with more network code than business logic. <b>Fix:</b> merge cohesive capabilities.</p></div>
+<div class="card"><h3>Retry Storm</h3><p><b>Symptoms:</b> an outage creates more traffic. <b>Fix:</b> bounded retries, backoff, jitter and circuit breaking.</p></div>
+<div class="card"><h3>Chatty APIs</h3><p><b>Symptoms:</b> one request triggers many sequential calls. <b>Fix:</b> redesign boundaries, aggregation or asynchronous workflows.</p></div>
+<div class="card"><h3>No Observability</h3><p><b>Symptoms:</b> “works locally” but production incidents have no trace. <b>Fix:</b> logs, metrics, traces and operational SLOs from the beginning.</p></div>
+<div class="card"><h3>Microservices Without Automation</h3><p><b>Symptoms:</b> manual deployment, configuration and environment setup. <b>Fix:</b> platform engineering and CI/CD.</p></div>
+</div>
+</section>
+
+<section>
+<h2>End-to-End Production Architecture</h2>
+<div class="diagram">
+<div class="flow"><div class="node">Client</div><div class="arrow">→</div><div class="node">CDN / Edge</div><div class="arrow">→</div><div class="node">Gateway / BFF</div><div class="arrow">→</div><div class="node">Services</div><div class="arrow">→</div><div class="node">Owned Data</div></div>
+<br>
+<div class="flow"><div class="node">Services</div><div class="arrow">↔</div><div class="node">Message Broker</div><div class="arrow">↔</div><div class="node">Async Workers</div></div>
+<br>
+<div class="flow"><div class="node">Security</div><div class="arrow">+</div><div class="node">Observability</div><div class="arrow">+</div><div class="node">Config</div><div class="arrow">+</div><div class="node">Resilience</div><div class="arrow">+</div><div class="node">CI/CD</div></div>
+</div>
+<div class="summary">
+<div class="card"><div class="label">Boundary</div><h3>Own a business capability</h3><p>Clear ownership is the foundation.</p></div>
+<div class="card"><div class="label">Runtime</div><h3>Expect partial failure</h3><p>Timeouts, retries, isolation and observability are mandatory design concerns.</p></div>
+<div class="card"><div class="label">Evolution</div><h3>Design for change</h3><p>Contracts, compatibility and deployment automation enable independent evolution.</p></div>
+</div>
+<div class="callout"><b>Final principle:</b> Microservices should buy meaningful independence. If the architecture creates more coordination than it removes, reconsider the boundaries — a modular monolith may be the better design.</div>
+</section>
+</main>
+</div>
+
+<footer><div class="container">Microservices Architecture Learning Guide • Problem → Design → Trade-off → Production</div></footer>
+</div>
+</body>
+</html>
